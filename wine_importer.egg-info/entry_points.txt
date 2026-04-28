@@ -1,0 +1,2 @@
+[console_scripts]
+wine-importer = wine_importer.cli:app

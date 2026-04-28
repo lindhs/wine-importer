@@ -1,0 +1,11 @@
+producer: Producer
+name: Name
+vintage: Vintage
+region: Region
+appellation: Appellation
+varietal: Varietal
+quantity: Quantity
+size: Bottle Size
+location: Location
+bin: Bin
+notes: Notes

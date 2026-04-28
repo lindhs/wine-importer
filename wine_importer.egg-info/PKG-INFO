@@ -1,3 +1,20 @@
+Metadata-Version: 2.4
+Name: wine-importer
+Version: 0.1.0
+Summary: Local-first CLI pipeline for importing messy wine spreadsheets into a cleaned CellarTracker-ready CSV.
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: typer>=0.9
+Requires-Dist: pydantic>=2.7
+Requires-Dist: pandas>=2.0
+Requires-Dist: openpyxl>=3.1
+Requires-Dist: PyYAML>=6.0
+Requires-Dist: rapidfuzz>=2.16
+Requires-Dist: rich>=14.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: ruff>=0.0; extra == "dev"
+
 # wine-importer
 
 `wine-importer` is a local-first CLI pipeline for importing messy wine spreadsheets into a cleaned, CellarTracker-ready CSV.

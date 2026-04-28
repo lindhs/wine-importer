@@ -1,0 +1,17 @@
+input_path: data/raw/wine_raw_test1.csv
+canonical_path: data/canonical/wine_canonical_clean.csv
+output_path: runs/example/08_cellartracker_import.csv
+artifacts:
+  raw_copy: runs/example/01_raw_copy.csv
+  parsed: runs/example/02_parsed_rows.json
+  mapping: runs/example/03_mapping.yaml
+  mapped: runs/example/04_mapped_rows.json
+  normalized: runs/example/05_normalized_rows.json
+  candidates: runs/example/06_candidate_matches.json
+  reviewed: runs/example/07_reviewed_matches.json
+stats:
+  rows_parsed: 31
+  rows_mapped: 31
+  rows_normalized: 31
+  candidate_sets: 31
+  reviewed_matches: 31

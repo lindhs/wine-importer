@@ -1,0 +1,529 @@
+[
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 1,
+    "data": {
+      "Producer": "Canopy",
+      "Name": "Tres Patas Garnacha",
+      "Vintage": "",
+      "Region": "",
+      "Appellation": "",
+      "Varietal": "",
+      "Quantity": "1",
+      "Bottle Size": "750ml",
+      "Location": "",
+      "Bin": "1A",
+      "Notes": "Red Wine; Vivino avg 3.7; 1322 ratings; https://www.vivino.com/wines/3750901"
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 2,
+    "data": {
+      "Producer": "Bolla",
+      "Name": "Le Poiane Amarone della Valpolicella Classico",
+      "Vintage": "",
+      "Region": "Italy",
+      "Appellation": "",
+      "Varietal": "",
+      "Quantity": "1",
+      "Bottle Size": "750ml",
+      "Location": "",
+      "Bin": "",
+      "Notes": ""
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 3,
+    "data": {
+      "Producer": "Villa Mongalli",
+      "Name": "Pozzo del Curato Sagrantino di Montefalco",
+      "Vintage": "",
+      "Region": "Italy",
+      "Appellation": "",
+      "Varietal": "",
+      "Quantity": "1",
+      "Bottle Size": "",
+      "Location": "",
+      "Bin": "",
+      "Notes": ""
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 4,
+    "data": {
+      "Producer": "Antonelli San Marco",
+      "Name": "Sagrantino Montefalco",
+      "Vintage": "",
+      "Region": "Italy",
+      "Appellation": "Montefalco",
+      "Varietal": "Central Italy Red",
+      "Quantity": "",
+      "Bottle Size": "",
+      "Location": "",
+      "Bin": "",
+      "Notes": ""
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 5,
+    "data": {
+      "Producer": "Vinarija Vuina",
+      "Name": "Crljenak Štafileo",
+      "Vintage": "2018",
+      "Region": "",
+      "Appellation": "Dalmatian Coast",
+      "Varietal": "Croatian Red",
+      "Quantity": "",
+      "Bottle Size": "",
+      "Location": "Cellar A",
+      "Bin": "",
+      "Notes": "Red Wine; Vivino avg 4.0; 599 ratings; https://www.vivino.com/wines/160775754"
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 6,
+    "data": {
+      "Producer": "Château Lapelletrie",
+      "Name": "Saint-Émilion Grand Cru",
+      "Vintage": "",
+      "Region": "",
+      "Appellation": "",
+      "Varietal": "Bordeaux Saint-Émilion",
+      "Quantity": "",
+      "Bottle Size": "",
+      "Location": "",
+      "Bin": "6A",
+      "Notes": "Red Wine; Vivino avg 4.0; 5529 ratings; https://www.vivino.com/wines/163633290"
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 7,
+    "data": {
+      "Producer": "Bertani",
+      "Name": "Catullo Valpolicella Ripasso Classico Superiore",
+      "Vintage": "2020",
+      "Region": "Italy",
+      "Appellation": "Valpolicella Ripasso Classico",
+      "Varietal": "",
+      "Quantity": "",
+      "Bottle Size": "750ml",
+      "Location": "",
+      "Bin": "",
+      "Notes": ""
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 8,
+    "data": {
+      "Producer": "Domaine des Tourelles",
+      "Name": "Marquis des Beys Rouge",
+      "Vintage": "",
+      "Region": "",
+      "Appellation": "Bekaa Valley",
+      "Varietal": "Lebanese Red",
+      "Quantity": "1",
+      "Bottle Size": "750ml",
+      "Location": "",
+      "Bin": "",
+      "Notes": ""
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 9,
+    "data": {
+      "Producer": "Bottega",
+      "Name": "Valpolicella Ripasso Superiore",
+      "Vintage": "2021",
+      "Region": "",
+      "Appellation": "",
+      "Varietal": "Italian Ripasso",
+      "Quantity": "1",
+      "Bottle Size": "750ml",
+      "Location": "",
+      "Bin": "",
+      "Notes": ""
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 10,
+    "data": {
+      "Producer": "G.D. Vajra",
+      "Name": "Albe Barolo",
+      "Vintage": "2021",
+      "Region": "Italy",
+      "Appellation": "",
+      "Varietal": "Italian Barolo",
+      "Quantity": "1",
+      "Bottle Size": "750ml",
+      "Location": "",
+      "Bin": "",
+      "Notes": ""
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 11,
+    "data": {
+      "Producer": "Luigi Righetti",
+      "Name": "Capitel de Roari Amarone della Valpolicella Classico",
+      "Vintage": "",
+      "Region": "",
+      "Appellation": "",
+      "Varietal": "",
+      "Quantity": "2",
+      "Bottle Size": "750ml",
+      "Location": "",
+      "Bin": "",
+      "Notes": "Red Wine; Vivino avg 4.1; 30453 ratings; https://www.vivino.com/wines/167246887"
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 12,
+    "data": {
+      "Producer": "San Fereolo",
+      "Name": "Il Provinciale",
+      "Vintage": "2019",
+      "Region": "Italy",
+      "Appellation": "",
+      "Varietal": "Italian Nebbiolo",
+      "Quantity": "",
+      "Bottle Size": "",
+      "Location": "",
+      "Bin": "",
+      "Notes": ""
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 13,
+    "data": {
+      "Producer": "",
+      "Name": "Disanfrancesco Nebbiolo",
+      "Vintage": "",
+      "Region": "Italy",
+      "Appellation": "Langhe",
+      "Varietal": "",
+      "Quantity": "",
+      "Bottle Size": "750ml",
+      "Location": "",
+      "Bin": "",
+      "Notes": "Red Wine; Vivino avg 4.0; 8311 ratings; https://www.vivino.com/wines/170605804"
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 14,
+    "data": {
+      "Producer": "San Fereolo",
+      "Name": "",
+      "Vintage": "",
+      "Region": "Italy",
+      "Appellation": "",
+      "Varietal": "",
+      "Quantity": "1",
+      "Bottle Size": "750ml",
+      "Location": "",
+      "Bin": "",
+      "Notes": ""
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 15,
+    "data": {
+      "Producer": "Carbonaia",
+      "Name": "Montefalco Sagrantino",
+      "Vintage": "",
+      "Region": "Italy",
+      "Appellation": "",
+      "Varietal": "",
+      "Quantity": "1",
+      "Bottle Size": "",
+      "Location": "",
+      "Bin": "",
+      "Notes": ""
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 16,
+    "data": {
+      "Producer": "Alberto Ballarin",
+      "Name": "Barolo Bussia",
+      "Vintage": "",
+      "Region": "Italy",
+      "Appellation": "",
+      "Varietal": "Italian Barolo",
+      "Quantity": "1",
+      "Bottle Size": "750ml",
+      "Location": "",
+      "Bin": "",
+      "Notes": "Red Wine; Vivino avg 4.1; 239 ratings; https://www.vivino.com/wines/173096918"
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 17,
+    "data": {
+      "Producer": "Collina del Sole",
+      "Name": "Barolo",
+      "Vintage": "2021",
+      "Region": "Italy",
+      "Appellation": "",
+      "Varietal": "",
+      "Quantity": "1",
+      "Bottle Size": "750ml",
+      "Location": "Cellar A",
+      "Bin": "",
+      "Notes": ""
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 18,
+    "data": {
+      "Producer": "Terra Madre",
+      "Name": "Plavac Mali Barrique",
+      "Vintage": "2021",
+      "Region": "",
+      "Appellation": "Dalmatian Coast",
+      "Varietal": "Croatian Dalmatian Coast Plavac Mali Red",
+      "Quantity": "1",
+      "Bottle Size": "750ml",
+      "Location": "",
+      "Bin": "",
+      "Notes": ""
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 19,
+    "data": {
+      "Producer": "Tenuta San Guido",
+      "Name": "Le Difese",
+      "Vintage": "2023",
+      "Region": "Italy",
+      "Appellation": "",
+      "Varietal": "",
+      "Quantity": "1",
+      "Bottle Size": "750ml",
+      "Location": "",
+      "Bin": "",
+      "Notes": "Red Wine; Vivino avg 3.8; 52972 ratings; https://www.vivino.com/wines/173723532"
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 20,
+    "data": {
+      "Producer": "Renato Ratti",
+      "Name": "Ochetti Nebbiolo",
+      "Vintage": "2023",
+      "Region": "",
+      "Appellation": "",
+      "Varietal": "Italian Nebbiolo",
+      "Quantity": "1",
+      "Bottle Size": "",
+      "Location": "",
+      "Bin": "",
+      "Notes": "Red Wine; Vivino avg 3.9; 17757 ratings; https://www.vivino.com/wines/173923332"
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 21,
+    "data": {
+      "Producer": "Pietro Clementi",
+      "Name": "Valpolicella Ripasso Classico Superiore",
+      "Vintage": "2020",
+      "Region": "",
+      "Appellation": "Valpolicella Ripasso Classico",
+      "Varietal": "Italian Ripasso",
+      "Quantity": "1",
+      "Bottle Size": "",
+      "Location": "Cellar A",
+      "Bin": "",
+      "Notes": ""
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 22,
+    "data": {
+      "Producer": "Giacomo Grimaldi",
+      "Name": "Dolcetto d'Alba",
+      "Vintage": "",
+      "Region": "",
+      "Appellation": "",
+      "Varietal": "",
+      "Quantity": "",
+      "Bottle Size": "750ml",
+      "Location": "",
+      "Bin": "",
+      "Notes": "Red Wine; Vivino avg 3.7; 1502 ratings; https://www.vivino.com/wines/174067777"
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 23,
+    "data": {
+      "Producer": "Bodegas Roda",
+      "Name": "Roda Reserva Rioja",
+      "Vintage": "2023",
+      "Region": "",
+      "Appellation": "",
+      "Varietal": "",
+      "Quantity": "",
+      "Bottle Size": "",
+      "Location": "",
+      "Bin": "",
+      "Notes": ""
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 24,
+    "data": {
+      "Producer": "Pasqua Vigneti e Cantine",
+      "Name": "Famiglia Pasqua Valpolicella Ripasso",
+      "Vintage": "",
+      "Region": "Italy",
+      "Appellation": "",
+      "Varietal": "",
+      "Quantity": "1",
+      "Bottle Size": "",
+      "Location": "",
+      "Bin": "",
+      "Notes": ""
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 25,
+    "data": {
+      "Producer": "Langlois",
+      "Name": "Crémant de Loire Cadence Extra Brut",
+      "Vintage": "",
+      "Region": "",
+      "Appellation": "",
+      "Varietal": "",
+      "Quantity": "",
+      "Bottle Size": "750ml",
+      "Location": "Cellar A",
+      "Bin": "",
+      "Notes": ""
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 26,
+    "data": {
+      "Producer": "Mormoraia",
+      "Name": "Trochus Chianti Colli Senesi Riserva",
+      "Vintage": "",
+      "Region": "Italy",
+      "Appellation": "",
+      "Varietal": "",
+      "Quantity": "",
+      "Bottle Size": "",
+      "Location": "",
+      "Bin": "26A",
+      "Notes": "Red Wine; Vivino avg 4.2; 233 ratings; https://www.vivino.com/wines/176467903"
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 27,
+    "data": {
+      "Producer": "",
+      "Name": "Langhe Nebbiolo Angelo",
+      "Vintage": "2023",
+      "Region": "Italy",
+      "Appellation": "Langhe",
+      "Varietal": "Italian Nebbiolo",
+      "Quantity": "",
+      "Bottle Size": "",
+      "Location": "",
+      "Bin": "",
+      "Notes": "Red Wine; Vivino avg 3.8; 2556 ratings; https://www.vivino.com/wines/178242740"
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 28,
+    "data": {
+      "Producer": "Paolo Conterno",
+      "Name": "A Mont Langhe Nebbiolo",
+      "Vintage": "2023",
+      "Region": "",
+      "Appellation": "Langhe",
+      "Varietal": "",
+      "Quantity": "1",
+      "Bottle Size": "",
+      "Location": "",
+      "Bin": "",
+      "Notes": "Red Wine; Vivino avg 3.8; 2507 ratings; https://www.vivino.com/wines/178667753"
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 29,
+    "data": {
+      "Producer": "La Spinetta",
+      "Name": "Langhe Nebbiolo",
+      "Vintage": "2024",
+      "Region": "",
+      "Appellation": "",
+      "Varietal": "Italian Nebbiolo",
+      "Quantity": "1",
+      "Bottle Size": "750ml",
+      "Location": "Cellar A",
+      "Bin": "",
+      "Notes": ""
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 30,
+    "data": {
+      "Producer": "Vinarija Vuina",
+      "Name": "Crljenak Štafileo",
+      "Vintage": "2024",
+      "Region": "",
+      "Appellation": "Dalmatian Coast",
+      "Varietal": "Croatian Red",
+      "Quantity": "1",
+      "Bottle Size": "",
+      "Location": "",
+      "Bin": "",
+      "Notes": "Red Wine; Vivino avg 4.0; 599 ratings; https://www.vivino.com/wines/180144910"
+    }
+  },
+  {
+    "source_file": "wine_raw_test1.csv",
+    "row_number": 31,
+    "data": {
+      "Producer": "Trediberri",
+      "Name": "Dogliani",
+      "Vintage": "2024",
+      "Region": "Italy",
+      "Appellation": "",
+      "Varietal": "",
+      "Quantity": "",
+      "Bottle Size": "",
+      "Location": "",
+      "Bin": "31A",
+      "Notes": ""
+    }
+  }
+]

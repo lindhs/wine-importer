@@ -1,0 +1,32 @@
+Vintage,UserWine1,UserWine2,Quantity,BottleSize,Location,Bin,Notes
+,Canopy,Tres Patas Garnacha,1,750ml,,1A,Red Wine; Vivino avg 3.7; 1322 ratings; https://www.vivino.com/wines/3750901 | match_status=rejected | No strong candidate match found | canonical_id=1
+,Bolla,Le Poiane Amarone della Valpolicella Classico,1,750ml,,,match_status=rejected | No strong candidate match found | canonical_id=2
+2015,Villa Mongalli,Pozzo del Curato Sagrantino di Montefalco,1,,,,match_status=rejected | No strong candidate match found | canonical_id=3
+2019,Antonelli San Marco,Sagrantino Montefalco,,,,,match_status=accepted | High confidence automatic match | canonical_id=4
+2018,Vinarija Vuina,Crljenak Štafileo,,,Cellar A,,Red Wine; Vivino avg 4.0; 599 ratings; https://www.vivino.com/wines/160775754 | match_status=accepted | High confidence automatic match | canonical_id=5
+2020,Château Lapelletrie,Saint-Émilion Grand Cru,,,,6A,Red Wine; Vivino avg 4.0; 5529 ratings; https://www.vivino.com/wines/163633290 | match_status=review_needed | Candidate requires manual verification | canonical_id=6
+2020,Bertani,Catullo Valpolicella Ripasso Classico Superiore,,750ml,,,match_status=accepted | High confidence automatic match | canonical_id=7
+2019,Domaine des Tourelles,Marquis des Beys Rouge,1,750ml,,,match_status=review_needed | Candidate requires manual verification | canonical_id=8
+2021,Bottega,Valpolicella Ripasso Superiore,1,750ml,,,match_status=review_needed | Candidate requires manual verification | canonical_id=9
+2021,G.D. Vajra,Albe Barolo,1,750ml,,,match_status=review_needed | Candidate requires manual verification | canonical_id=10
+2021,Luigi Righetti,Capitel de Roari Amarone della Valpolicella Classico,2,750ml,,,Red Wine; Vivino avg 4.1; 30453 ratings; https://www.vivino.com/wines/167246887 | match_status=rejected | No strong candidate match found | canonical_id=11
+2019,San Fereolo,Il Provinciale,,,,,match_status=review_needed | Candidate requires manual verification | canonical_id=12
+2022,Roberto Voerzio,Disanfrancesco Nebbiolo,,750ml,,,Red Wine; Vivino avg 4.0; 8311 ratings; https://www.vivino.com/wines/170605804 | match_status=rejected | No strong candidate match found | canonical_id=13
+2019,San Fereolo,Il Provinciale,1,750ml,,,match_status=rejected | No strong candidate match found | canonical_id=12
+2015,Carbonaia,Montefalco Sagrantino,1,,,,match_status=rejected | No strong candidate match found | canonical_id=15
+2021,Alberto Ballarin,Barolo Bussia,1,750ml,,,Red Wine; Vivino avg 4.1; 239 ratings; https://www.vivino.com/wines/173096918 | match_status=review_needed | Candidate requires manual verification | canonical_id=16
+2021,Collina del Sole,Barolo,1,750ml,Cellar A,,match_status=review_needed | Candidate requires manual verification | canonical_id=17
+2021,Terra Madre,Plavac Mali Barrique,1,750ml,,,match_status=accepted | High confidence automatic match | canonical_id=18
+2023,Tenuta San Guido,Le Difese,1,750ml,,,Red Wine; Vivino avg 3.8; 52972 ratings; https://www.vivino.com/wines/173723532 | match_status=review_needed | Candidate requires manual verification | canonical_id=19
+2023,Renato Ratti,Ochetti Nebbiolo,1,,,,Red Wine; Vivino avg 3.9; 17757 ratings; https://www.vivino.com/wines/173923332 | match_status=review_needed | Candidate requires manual verification | canonical_id=20
+2020,Pietro Clementi,Valpolicella Ripasso Classico Superiore,1,,Cellar A,,match_status=accepted | High confidence automatic match | canonical_id=21
+2023,Giacomo Grimaldi,Dolcetto d'Alba,,750ml,,,Red Wine; Vivino avg 3.7; 1502 ratings; https://www.vivino.com/wines/174067777 | match_status=rejected | No strong candidate match found | canonical_id=22
+2023,Bodegas Roda,Roda Reserva Rioja,,,,,match_status=review_needed | Candidate requires manual verification | canonical_id=23
+,Pasqua Vigneti e Cantine,Famiglia Pasqua Valpolicella Ripasso,1,,,,match_status=rejected | No strong candidate match found | canonical_id=24
+,Langlois,Crémant de Loire Cadence Extra Brut,,750ml,Cellar A,,match_status=rejected | No strong candidate match found | canonical_id=25
+2020,Mormoraia,Trochus Chianti Colli Senesi Riserva,,,,26A,Red Wine; Vivino avg 4.2; 233 ratings; https://www.vivino.com/wines/176467903 | match_status=rejected | No strong candidate match found | canonical_id=26
+2023,Mauro Veglio,Langhe Nebbiolo Angelo,,,,,Red Wine; Vivino avg 3.8; 2556 ratings; https://www.vivino.com/wines/178242740 | match_status=rejected | No strong candidate match found | canonical_id=27
+2023,Paolo Conterno,A Mont Langhe Nebbiolo,1,,,,Red Wine; Vivino avg 3.8; 2507 ratings; https://www.vivino.com/wines/178667753 | match_status=accepted | High confidence automatic match | canonical_id=28
+2024,La Spinetta,Langhe Nebbiolo,1,750ml,Cellar A,,match_status=review_needed | Candidate requires manual verification | canonical_id=29
+2024,Vinarija Vuina,Crljenak Štafileo,1,,,,Red Wine; Vivino avg 4.0; 599 ratings; https://www.vivino.com/wines/180144910 | match_status=accepted | High confidence automatic match | canonical_id=30
+2024,Trediberri,Dogliani,,,,31A,match_status=review_needed | Candidate requires manual verification | canonical_id=31
