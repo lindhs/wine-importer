@@ -9,9 +9,19 @@ artifacts:
   normalized: runs/example/05_normalized_rows.json
   candidates: runs/example/06_candidate_matches.json
   reviewed: runs/example/07_reviewed_matches.json
+  report: runs/example/09_match_report.csv
+  input_quality: runs/example/02_input_quality.json
 stats:
   rows_parsed: 31
   rows_mapped: 31
   rows_normalized: 31
   candidate_sets: 31
   reviewed_matches: 31
+  accepted_matches: 29
+  review_needed_matches: 0
+  rejected_matches: 2
+policy:
+  review_min_score: 0.55
+  review_accept_score: 0.7
+  ai_scoring_min_score: 0.55
+  ai_scoring_max_score: 0.7

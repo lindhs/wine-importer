@@ -44,7 +44,7 @@
         "region": "Méntrida",
         "appellation": "Méntrida",
         "varietal": "Spanish Grenache",
-        "score": 0.7,
+        "score": 0.7874999999999999,
         "source": {
           "id": "1",
           "producer": "Canopy",
@@ -446,7 +446,7 @@
         "region": "Montefalco Sagrantino",
         "appellation": "Montefalco Sagrantino",
         "varietal": "Central Italy Red",
-        "score": 0.6333126550868486,
+        "score": 0.7441532258064516,
         "source": {
           "id": "15",
           "producer": "Carbonaia",
@@ -776,7 +776,7 @@
         "region": "Valpolicella Ripasso Classico",
         "appellation": "Valpolicella Ripasso Classico",
         "varietal": "Italian Ripasso",
-        "score": 0.6717199353314264,
+        "score": 0.47161795796542716,
         "source": {
           "id": "21",
           "producer": "Pietro Clementi",
@@ -1288,7 +1288,7 @@
         "region": "Amarone della Valpolicella Classico",
         "appellation": "Amarone della Valpolicella Classico",
         "varietal": "Italian Amarone",
-        "score": 0.7,
+        "score": 0.7874999999999999,
         "source": {
           "id": "11",
           "producer": "Luigi Righetti",
@@ -2916,7 +2916,7 @@
         "region": "Valpolicella Ripasso",
         "appellation": "Valpolicella Ripasso",
         "varietal": "Italian Ripasso",
-        "score": 0.5579874411302983,
+        "score": 0.6951918367346939,
         "source": {
           "id": "24",
           "producer": "Pasqua Vigneti e Cantine",
@@ -3026,7 +3026,7 @@
         "region": "Dolcetto d'Alba",
         "appellation": "Dolcetto d'Alba",
         "varietal": "Northern Italy Red",
-        "score": 0.7,
+        "score": 0.7874999999999999,
         "source": {
           "id": "22",
           "producer": "Giacomo Grimaldi",
@@ -3404,7 +3404,7 @@
         "region": "Crémant de Loire",
         "appellation": "Crémant de Loire",
         "varietal": "French Crémant",
-        "score": 0.7,
+        "score": 0.7874999999999999,
         "source": {
           "id": "25",
           "producer": "Langlois",
@@ -3624,7 +3624,7 @@
         "region": "Langhe",
         "appellation": "Langhe",
         "varietal": "Italian Nebbiolo",
-        "score": 0.6590909090909091,
+        "score": 0.7609090909090909,
         "source": {
           "id": "27",
           "producer": "Mauro Veglio",
@@ -3648,7 +3648,7 @@
         "region": "Langhe",
         "appellation": "Langhe",
         "varietal": "Italian Nebbiolo",
-        "score": 0.5795454545454545,
+        "score": 0.7092045454545454,
         "source": {
           "id": "28",
           "producer": "Paolo Conterno",
@@ -3799,30 +3799,6 @@
       },
       {
         "row_number": 28,
-        "canonical_id": "27",
-        "producer": "Mauro Veglio",
-        "name": "Langhe Nebbiolo Angelo",
-        "vintage": "2023",
-        "region": "Langhe",
-        "appellation": "Langhe",
-        "varietal": "Italian Nebbiolo",
-        "score": 0.65506993006993,
-        "source": {
-          "id": "27",
-          "producer": "Mauro Veglio",
-          "name": "Langhe Nebbiolo Angelo",
-          "vintage": "2023",
-          "country": "Italy",
-          "region": "Langhe",
-          "appellation": "Langhe",
-          "varietal": "Italian Nebbiolo",
-          "quantity": 2,
-          "size": "750ml",
-          "notes": "Red Wine; Vivino avg 3.8; 2556 ratings; https://www.vivino.com/wines/178242740"
-        }
-      },
-      {
-        "row_number": 28,
         "canonical_id": "20",
         "producer": "Renato Ratti",
         "name": "Ochetti Nebbiolo",
@@ -3867,6 +3843,30 @@
           "quantity": 1,
           "size": "750ml",
           "notes": "Red Wine; Vivino avg 3.7; 1502 ratings; https://www.vivino.com/wines/174067777"
+        }
+      },
+      {
+        "row_number": 28,
+        "canonical_id": "27",
+        "producer": "Mauro Veglio",
+        "name": "Langhe Nebbiolo Angelo",
+        "vintage": "2023",
+        "region": "Langhe",
+        "appellation": "Langhe",
+        "varietal": "Italian Nebbiolo",
+        "score": 0.4257954545454545,
+        "source": {
+          "id": "27",
+          "producer": "Mauro Veglio",
+          "name": "Langhe Nebbiolo Angelo",
+          "vintage": "2023",
+          "country": "Italy",
+          "region": "Langhe",
+          "appellation": "Langhe",
+          "varietal": "Italian Nebbiolo",
+          "quantity": 2,
+          "size": "750ml",
+          "notes": "Red Wine; Vivino avg 3.8; 2556 ratings; https://www.vivino.com/wines/178242740"
         }
       },
       {

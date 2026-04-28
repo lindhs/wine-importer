@@ -45,3 +45,87 @@ def test_export_reviewed_matches_uses_canonical_values_and_mapped_fields(tmp_pat
     assert rows[0]["Bin"] == "1A"
     assert "Original note" in rows[0]["Notes"]
     assert "match_status=accepted" in rows[0]["Notes"]
+
+
+def test_export_reviewed_matches_skips_non_accepted_by_default(tmp_path: Path) -> None:
+    output_path = tmp_path / "cellartracker.csv"
+    reviewed_matches = [
+        {
+            "row_number": 1,
+            "user_row": {"producer": "Input Producer", "name": "Input Wine"},
+            "best_match": {"producer": "Canonical Producer", "name": "Canonical Wine"},
+            "status": "review_needed",
+            "reason": "Candidate requires manual verification",
+        },
+        {
+            "row_number": 2,
+            "user_row": {"producer": "Rejected Producer", "name": "Rejected Wine"},
+            "best_match": {"producer": "Wrong Producer", "name": "Wrong Wine"},
+            "status": "rejected",
+            "reason": "No strong candidate match found",
+        },
+    ]
+
+    export_reviewed_matches(reviewed_matches, output_path)
+
+    with output_path.open("r", encoding="utf-8", newline="") as source:
+        rows = list(csv.DictReader(source))
+
+    assert rows == []
+
+
+def test_export_reviewed_matches_can_export_review_needed(tmp_path: Path) -> None:
+    output_path = tmp_path / "cellartracker.csv"
+    reviewed_matches = [
+        {
+            "row_number": 1,
+            "user_row": {"producer": "Input Producer", "name": "Input Wine"},
+            "best_match": {
+                "canonical_id": "9",
+                "producer": "Canonical Producer",
+                "name": "Canonical Wine",
+            },
+            "status": "review_needed",
+            "reason": "Candidate requires manual verification",
+        }
+    ]
+
+    export_reviewed_matches(reviewed_matches, output_path, export_review_needed=True)
+
+    with output_path.open("r", encoding="utf-8", newline="") as source:
+        rows = list(csv.DictReader(source))
+
+    assert len(rows) == 1
+    assert rows[0]["UserWine1"] == "Canonical Producer"
+    assert "canonical_id=9" in rows[0]["Notes"]
+
+
+def test_export_reviewed_matches_can_export_rejected_as_unmatched(tmp_path: Path) -> None:
+    output_path = tmp_path / "cellartracker.csv"
+    reviewed_matches = [
+        {
+            "row_number": 1,
+            "user_row": {"producer": "Input Producer", "name": "Input Wine"},
+            "best_match": {
+                "canonical_id": "9",
+                "producer": "Wrong Producer",
+                "name": "Wrong Wine",
+            },
+            "status": "rejected",
+            "reason": "No strong candidate match found",
+        }
+    ]
+
+    export_reviewed_matches(
+        reviewed_matches,
+        output_path,
+        export_rejected_as_unmatched=True,
+    )
+
+    with output_path.open("r", encoding="utf-8", newline="") as source:
+        rows = list(csv.DictReader(source))
+
+    assert len(rows) == 1
+    assert rows[0]["UserWine1"] == "Input Producer"
+    assert rows[0]["UserWine2"] == "Input Wine"
+    assert "canonical_id" not in rows[0]["Notes"]

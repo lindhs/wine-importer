@@ -1,95 +1,72 @@
 # wine-importer
 
-`wine-importer` is a local-first CLI pipeline for importing messy wine spreadsheets into a cleaned, CellarTracker-ready CSV.
+Local CLI pipeline for turning messy wine spreadsheets into a cleaned,
+CellarTracker-ready CSV.
 
-## Features
-
-- Inspect CSV/TSV/XLSX files and preview detected columns
-- Infer schema mappings and write YAML mapping artifacts
-- Normalize wine metadata with deterministic rules
-- Perform canonical wine search and fuzzy scoring using RapidFuzz
-- Review matches automatically with review-needed thresholds
-- Export a CellarTracker-ready CSV from reviewed matches
-- Keep each stage as a reusable, independent pipeline step
-
-## Requirements
-
-- Python 3.11+
-- Typer
-- Pydantic
-- pandas
-- PyYAML
-- RapidFuzz
-- rich
-- pytest
-- ruff
-
-## Installation
+## Install
 
 ```bash
 python -m pip install -e .
 ```
 
-## CLI Usage
+## Run
+
+```bash
+wine-importer run data/raw/wine_raw_test1.csv \
+  --canonical data/canonical/wine_canonical_clean.csv \
+  --out-dir runs/example
+```
+
+Optional AI helpers use `OPENAI_API_KEY` from `.env` or the shell:
+
+```bash
+wine-importer run data/raw/wine_raw_test1.csv \
+  --canonical data/canonical/wine_canonical_clean.csv \
+  --out-dir runs/example \
+  --use-ai
+```
+
+## Useful Commands
 
 ```bash
 wine-importer inspect data/raw/sample_input.csv
-wine-importer inspect data/raw/sample_input.tsv --delimiter "\t"
-wine-importer inspect data/raw/sample_input.xlsx --sheet-name Sheet1
-wine-importer inspect unstructured_file.foo --use-ai
-wine-importer run data/raw/sample_input.csv --canonical data/canonical/sample_canonical.csv --out-dir runs/example
-wine-importer run data/raw/sample_input.tsv --canonical data/canonical/sample_canonical.csv --out-dir runs/example --delimiter "\t"
-wine-importer run data/raw/sample_input.xlsx --canonical data/canonical/sample_canonical.csv --out-dir runs/example --sheet-name Sheet1
-wine-importer run some_unknown_file.foo --canonical data/canonical/sample_canonical.csv --out-dir runs/example --use-ai
-
-wine-importer normalize runs/example/04_mapped_rows.json --out runs/example/05_normalized_rows.json
-wine-importer match runs/example/05_normalized_rows.json --canonical data/canonical/sample_canonical.csv --out runs/example/06_candidate_matches.json
-wine-importer review runs/example/06_candidate_matches.json --out runs/example/07_reviewed_matches.json
+wine-importer report runs/example/07_reviewed_matches.json --out runs/example/09_match_report.csv
 wine-importer export runs/example/07_reviewed_matches.json --out runs/example/08_cellartracker_import.csv
+wine-importer export runs/example/07_reviewed_matches.json --out runs/example/08_cellartracker_import.csv --export-review-needed
+python3 setup_api_key.py
+python3 -m pytest -q
 ```
 
-## Pipeline Artifacts
+See [WORKFLOW.md](WORKFLOW.md) for the full stage-by-stage workflow and
+flowchart.
+
+## Outputs
+
+Pipeline runs write staged artifacts into `runs/<name>/`:
 
 - `01_raw_copy.csv`
 - `02_parsed_rows.json`
+- `02_input_quality.json` when `--use-ai` is enabled
 - `03_mapping.yaml`
 - `04_mapped_rows.json`
 - `05_normalized_rows.json`
 - `06_candidate_matches.json`
 - `07_reviewed_matches.json`
 - `08_cellartracker_import.csv`
+- `09_match_report.csv`
+- `run_manifest.yaml`
 
-## Sample Data
-
-- `data/raw/sample_input.csv`
-- `data/canonical/sample_canonical.csv`
+By default, `08_cellartracker_import.csv` exports only accepted matches. Use
+`--export-review-needed` to include review-needed rows with their current best
+canonical candidate, or `--export-rejected-as-unmatched` to include rejected
+rows as user-entered unmatched wines.
 
 ## Project Layout
 
-```
-wine-importer/
-  pyproject.toml
-  README.md
-  data/
-    raw/
-    canonical/
-    output/
-  runs/
-  wine_importer/
-    __init__.py
-    cli.py
-    models.py
-    pipeline.py
-    parse.py
-    schema_map.py
-    normalize.py
-    search.py
-    score.py
-    review.py
-    export.py
-    io.py
-  tests/
-    test_normalize.py
-    test_score.py
-    test_pipeline.py
+```text
+wine_importer/       source modules
+tests/               regression tests
+data/raw/            sample input files
+data/canonical/      sample canonical files
+runs/                generated pipeline output, ignored by git
 ```

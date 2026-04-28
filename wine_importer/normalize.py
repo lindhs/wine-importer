@@ -20,7 +20,10 @@ SIZE_PATTERNS = [
     (r"\bjeroboam\b", lambda _: "3000 ml"),
 ]
 
-NV_PATTERNS = [r"\b(?:nv|n/v|non[- ]vintage|non[- ]vintage|nonvintage)\b", r"\bn\.?v\.?\b"]
+NV_PATTERNS = [
+    r"\b(?:nv|n/v|non[- ]vintage|non[- ]vintage|nonvintage)\b",
+    r"\bn\.?v\.?\b",
+]
 
 
 def strip_accents(value: str) -> str:

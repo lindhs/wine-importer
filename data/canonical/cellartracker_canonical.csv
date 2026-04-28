@@ -1,0 +1,13 @@
+BottleState,Vintage,UserWine1,UserWine2,UserWine3,UserWine4,UserWine5,UserWine6,UserWine7,UserWine8,Quantity,BottleSize,Location,Bin,Valuation,BeginConsume,EndConsume,Store,PurchaseDate,DeliveryDate,BottleCost,BottleCostCurrency,BottleNote,PurchaseNote,PrivateNote,ConsumptionDate,ConsumptionType,ConsumptionNote,ConsumptionRevenue,ConsumptionRevenueCurrency,TastingNotes,Rating,Defective,WA,WAText,WABegin,WAEnd,WS,WSText,WSBegin,WSEnd,WE,WEText,WEBegin,WEEnd
+,1993,A. Rafanelli,Zinfandel,Dry Creek Valley,,US,CA,Sonoma County,Dry Creek Valley,2,750 ml,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,1992,Alexander Valley,Cab-Sauv,,,US,CA,Alexander Valley,,1,750 ml,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,1991,Anderson's Conn Valley,Cab-Sauv,Estate Reserve,,US,CA,Napa,St. Helena,2,750 ml,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,1992,Anderson's Conn Valley,Cab-Sauv,Estate Reserve,,US,CA,Napa,St. Helena,2,750 ml,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,1991,Arrowfield,Cab-Merl,,,Australia,South Eastern,,,1,750 ml,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,1991,Beaulieu Vineyard,Cab-Sauv,Rutherford,,US,CA,Napa,,11,750 ml,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,1992,Beaulieu Vineyard,Cab-Sauv,Rutherford,,US,CA,Napa,,1,750 ml,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,1992,Benzinger,Cab-Sauv,[Signed Bottle],,US,CA,Sonoma Cnty,,1,750 ml,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,1982,Beringer,Cab-Sauv,Proprieter's Grown,,US,CA,Napa,,0,750 ml,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,1991,Beringer,Cab-Sauv,Private Reserve,,US,CA,Napa,St. Helena,2,750 ml,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,1992,Bodegas Esmeralda,Cab-Sauv,Catena Estate Bottled,Agrelo,Argentina,Mendoza?,,,1,750 ml,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,1990,Caymus,Cab-Sauv,,,US,CA,Napa,,1,750 ml,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

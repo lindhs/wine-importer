@@ -43,7 +43,7 @@
       "region": "Méntrida",
       "appellation": "Méntrida",
       "varietal": "Spanish Grenache",
-      "score": 0.7,
+      "score": 0.7874999999999999,
       "source": {
         "id": "1",
         "producer": "Canopy",
@@ -58,8 +58,8 @@
         "notes": "Red Wine; Vivino avg 3.7; 1322 ratings; https://www.vivino.com/wines/3750901"
       }
     },
-    "status": "rejected",
-    "reason": "No strong candidate match found"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 2,
@@ -120,8 +120,8 @@
         "notes": "Red Wine; Vivino avg 4.2; 9228 ratings; https://www.vivino.com/wines/13870542"
       }
     },
-    "status": "rejected",
-    "reason": "No strong candidate match found"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 3,
@@ -182,8 +182,8 @@
         "notes": "Red Wine; Vivino avg 4.3; 1702 ratings; https://www.vivino.com/wines/146363369"
       }
     },
-    "status": "rejected",
-    "reason": "No strong candidate match found"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 4,
@@ -368,8 +368,8 @@
         "notes": "Red Wine; Vivino avg 4.0; 5529 ratings; https://www.vivino.com/wines/163633290"
       }
     },
-    "status": "review_needed",
-    "reason": "Candidate requires manual verification"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 7,
@@ -492,8 +492,8 @@
         "notes": "Red Wine; Vivino avg 4.0; 4457 ratings; https://www.vivino.com/wines/166403188"
       }
     },
-    "status": "review_needed",
-    "reason": "Candidate requires manual verification"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 9,
@@ -554,8 +554,8 @@
         "notes": "Red Wine; Vivino avg 3.9; 12291 ratings; https://www.vivino.com/wines/167176722"
       }
     },
-    "status": "review_needed",
-    "reason": "Candidate requires manual verification"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 10,
@@ -616,8 +616,8 @@
         "notes": "Red Wine; Vivino avg 4.0; 33165 ratings; https://www.vivino.com/wines/167241998"
       }
     },
-    "status": "review_needed",
-    "reason": "Candidate requires manual verification"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 11,
@@ -663,7 +663,7 @@
       "region": "Amarone della Valpolicella Classico",
       "appellation": "Amarone della Valpolicella Classico",
       "varietal": "Italian Amarone",
-      "score": 0.7,
+      "score": 0.7874999999999999,
       "source": {
         "id": "11",
         "producer": "Luigi Righetti",
@@ -678,8 +678,8 @@
         "notes": "Red Wine; Vivino avg 4.1; 30453 ratings; https://www.vivino.com/wines/167246887"
       }
     },
-    "status": "rejected",
-    "reason": "No strong candidate match found"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 12,
@@ -740,8 +740,8 @@
         "notes": "Red Wine; Vivino avg 4.0; 1102 ratings; https://www.vivino.com/wines/168965696"
       }
     },
-    "status": "review_needed",
-    "reason": "Candidate requires manual verification"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 13,
@@ -926,8 +926,8 @@
         "notes": "Red Wine; Vivino avg 3.7; 208 ratings; https://www.vivino.com/wines/171137507"
       }
     },
-    "status": "rejected",
-    "reason": "No strong candidate match found"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 16,
@@ -988,8 +988,8 @@
         "notes": "Red Wine; Vivino avg 4.1; 239 ratings; https://www.vivino.com/wines/173096918"
       }
     },
-    "status": "review_needed",
-    "reason": "Candidate requires manual verification"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 17,
@@ -1050,8 +1050,8 @@
         "notes": "Red Wine; Vivino avg 4.0; 3859 ratings; https://www.vivino.com/wines/173447048"
       }
     },
-    "status": "review_needed",
-    "reason": "Candidate requires manual verification"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 18,
@@ -1174,8 +1174,8 @@
         "notes": "Red Wine; Vivino avg 3.8; 52972 ratings; https://www.vivino.com/wines/173723532"
       }
     },
-    "status": "review_needed",
-    "reason": "Candidate requires manual verification"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 20,
@@ -1236,8 +1236,8 @@
         "notes": "Red Wine; Vivino avg 3.9; 17757 ratings; https://www.vivino.com/wines/173923332"
       }
     },
-    "status": "review_needed",
-    "reason": "Candidate requires manual verification"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 21,
@@ -1345,7 +1345,7 @@
       "region": "Dolcetto d'Alba",
       "appellation": "Dolcetto d'Alba",
       "varietal": "Northern Italy Red",
-      "score": 0.7,
+      "score": 0.7874999999999999,
       "source": {
         "id": "22",
         "producer": "Giacomo Grimaldi",
@@ -1360,8 +1360,8 @@
         "notes": "Red Wine; Vivino avg 3.7; 1502 ratings; https://www.vivino.com/wines/174067777"
       }
     },
-    "status": "rejected",
-    "reason": "No strong candidate match found"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 23,
@@ -1422,8 +1422,8 @@
         "notes": "Red Wine; Vivino avg 4.2; 31366 ratings; https://www.vivino.com/wines/174709156"
       }
     },
-    "status": "review_needed",
-    "reason": "Candidate requires manual verification"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 24,
@@ -1484,8 +1484,8 @@
         "notes": "Red Wine; Vivino avg 3.8; 87 ratings; https://www.vivino.com/wines/175719007"
       }
     },
-    "status": "rejected",
-    "reason": "No strong candidate match found"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 25,
@@ -1531,7 +1531,7 @@
       "region": "Crémant de Loire",
       "appellation": "Crémant de Loire",
       "varietal": "French Crémant",
-      "score": 0.7,
+      "score": 0.7874999999999999,
       "source": {
         "id": "25",
         "producer": "Langlois",
@@ -1546,8 +1546,8 @@
         "notes": "Sparkling; Vivino avg 4.0; 103 ratings; https://www.vivino.com/wines/176319421"
       }
     },
-    "status": "rejected",
-    "reason": "No strong candidate match found"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 26,
@@ -1608,8 +1608,8 @@
         "notes": "Red Wine; Vivino avg 4.2; 233 ratings; https://www.vivino.com/wines/176467903"
       }
     },
-    "status": "rejected",
-    "reason": "No strong candidate match found"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 27,
@@ -1655,7 +1655,7 @@
       "region": "Langhe",
       "appellation": "Langhe",
       "varietal": "Italian Nebbiolo",
-      "score": 0.6590909090909091,
+      "score": 0.7609090909090909,
       "source": {
         "id": "27",
         "producer": "Mauro Veglio",
@@ -1670,8 +1670,8 @@
         "notes": "Red Wine; Vivino avg 3.8; 2556 ratings; https://www.vivino.com/wines/178242740"
       }
     },
-    "status": "rejected",
-    "reason": "No strong candidate match found"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 28,
@@ -1794,8 +1794,8 @@
         "notes": "Red Wine; Vivino avg 4.0; 17597 ratings; https://www.vivino.com/wines/180082375"
       }
     },
-    "status": "review_needed",
-    "reason": "Candidate requires manual verification"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   },
   {
     "row_number": 30,
@@ -1918,7 +1918,7 @@
         "notes": "Red Wine; Vivino avg 3.9; 63 ratings; https://www.vivino.com/wines/180526452"
       }
     },
-    "status": "review_needed",
-    "reason": "Candidate requires manual verification"
+    "status": "accepted",
+    "reason": "High confidence automatic match"
   }
 ]

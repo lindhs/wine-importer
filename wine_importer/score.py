@@ -1,16 +1,25 @@
+import logging
+from dataclasses import dataclass
+
 from rapidfuzz import fuzz
 
+from .config import FIELD_WEIGHTS, is_ai_scoring_candidate
 from .models import CandidateMatch, CanonicalWine, NormalizedWineRow
 from .normalize import normalize_text, normalize_vintage
 
-FIELD_WEIGHTS = {
-    "producer": 0.35,
-    "name": 0.35,
-    "appellation": 0.15,
-    "vintage": 0.10,
-    "varietal": 0.05,
-    "region": 0.05,
-}
+logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class CandidateScoreBreakdown:
+    score: float
+    producer_score: float
+    name_score: float
+    appellation_score: float
+    vintage_score: float
+    varietal_score: float
+    region_score: float
+    hard_conflicts: list[str]
 
 
 def _score_component(value_a: str | None, value_b: str | None) -> float:
@@ -23,7 +32,10 @@ def _score_component(value_a: str | None, value_b: str | None) -> float:
     return fuzz.token_sort_ratio(value_a, value_b) / 100.0
 
 
-def score_candidate(normalized_row: NormalizedWineRow, canonical: CanonicalWine) -> float:
+def score_candidate_breakdown(
+    normalized_row: NormalizedWineRow,
+    canonical: CanonicalWine,
+) -> CandidateScoreBreakdown:
     producer_score = _score_component(
         normalized_row.normalized_producer or normalized_row.producer,
         canonical.producer,
@@ -48,6 +60,7 @@ def score_candidate(normalized_row: NormalizedWineRow, canonical: CanonicalWine)
         normalized_row.normalized_varietal or normalized_row.varietal,
         canonical.varietal,
     )
+    hard_conflicts: list[str] = []
 
     total = (
         FIELD_WEIGHTS["producer"] * producer_score
@@ -62,26 +75,69 @@ def score_candidate(normalized_row: NormalizedWineRow, canonical: CanonicalWine)
     canonical_country = normalize_text(canonical.country) if canonical.country else None
     if row_country and canonical_country and row_country != canonical_country:
         total -= 0.35
+        hard_conflicts.append("country")
 
     row_vintage = normalize_vintage(normalized_row.normalized_vintage or normalized_row.vintage)
     canonical_vintage = normalize_vintage(canonical.vintage)
     if row_vintage and canonical_vintage and row_vintage != canonical_vintage:
         total -= 0.5
+        hard_conflicts.append("vintage")
 
     if producer_score < 0.2 and name_score < 0.3:
-        return 0.0
+        total = 0.0
 
-    return min(max(total, 0.0), 1.0)
+    return CandidateScoreBreakdown(
+        score=min(max(total, 0.0), 1.0),
+        producer_score=producer_score,
+        name_score=name_score,
+        appellation_score=appellation_score,
+        vintage_score=vintage_score,
+        varietal_score=varietal_score,
+        region_score=region_score,
+        hard_conflicts=hard_conflicts,
+    )
+
+
+def score_candidate(normalized_row: NormalizedWineRow, canonical: CanonicalWine) -> float:
+    return score_candidate_breakdown(normalized_row, canonical).score
 
 
 def rank_candidates(
     normalized_row: NormalizedWineRow,
     canonical_wines: list[CanonicalWine],
     top_n: int = 5,
+    use_ai_scoring: bool = False,
+    blocking_reasons: dict[str, str] | None = None,
 ) -> list[CandidateMatch]:
     candidate_scores: list[CandidateMatch] = []
     for canonical in canonical_wines:
-        score = score_candidate(normalized_row, canonical)
+        breakdown = score_candidate_breakdown(normalized_row, canonical)
+        score = breakdown.score
+
+        # Enhance ambiguous matches with AI semantic verification
+        if use_ai_scoring and is_ai_scoring_candidate(score):
+            try:
+                from .ai_schema import score_candidate_with_ai
+
+                enhanced_score = score_candidate_with_ai(
+                    normalized_row.producer,
+                    normalized_row.name,
+                    normalized_row.vintage,
+                    normalized_row.region,
+                    canonical.producer,
+                    canonical.name,
+                    canonical.vintage,
+                    canonical.region,
+                    score,
+                )
+                logger.debug(
+                    f"Row {normalized_row.row_number}: AI enhanced score for "
+                    f"{canonical.producer} {canonical.name} from {score:.2f} to {enhanced_score:.2f}"
+                )
+                score = enhanced_score
+            except Exception as e:
+                logger.debug(f"AI scoring failed (continuing with fuzzy score): {e}")
+
         candidate_scores.append(
             CandidateMatch(
                 row_number=normalized_row.row_number,
@@ -93,6 +149,14 @@ def rank_candidates(
                 appellation=canonical.appellation,
                 varietal=canonical.varietal,
                 score=score,
+                blocking_reason=(blocking_reasons or {}).get(canonical.id),
+                producer_score=breakdown.producer_score,
+                name_score=breakdown.name_score,
+                vintage_score=breakdown.vintage_score,
+                region_score=breakdown.region_score,
+                appellation_score=breakdown.appellation_score,
+                varietal_score=breakdown.varietal_score,
+                hard_conflicts=breakdown.hard_conflicts,
                 source=canonical.model_dump(),
             )
         )

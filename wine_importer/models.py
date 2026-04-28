@@ -72,6 +72,14 @@ class CandidateMatch(BaseModel):
     appellation: str | None = None
     varietal: str | None = None
     score: float = 0.0
+    blocking_reason: str | None = None
+    producer_score: float | None = None
+    name_score: float | None = None
+    vintage_score: float | None = None
+    region_score: float | None = None
+    appellation_score: float | None = None
+    varietal_score: float | None = None
+    hard_conflicts: list[str] = Field(default_factory=list)
     source: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -79,6 +87,10 @@ class MatchResult(BaseModel):
     row_number: int
     user_row: dict[str, Any]
     candidates: list[CandidateMatch] = Field(default_factory=list)
+    top_1_score: float | None = None
+    top_2_score: float | None = None
+    score_margin: float | None = None
+    num_candidates: int = 0
 
 
 class ReviewedMatch(BaseModel):
@@ -87,3 +99,7 @@ class ReviewedMatch(BaseModel):
     best_match: CandidateMatch | None = None
     status: Literal["accepted", "review_needed", "rejected"]
     reason: str | None = None
+    top_1_score: float | None = None
+    top_2_score: float | None = None
+    score_margin: float | None = None
+    num_candidates: int = 0

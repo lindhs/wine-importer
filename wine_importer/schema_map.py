@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import logging
 import re
 import unicodedata
 from typing import Iterable
 
 from .models import MappedWineRow, RawRow
 from .io import write_yaml
+
+logger = logging.getLogger(__name__)
 
 FIELD_KEYWORDS = {
     "producer": [
@@ -46,7 +49,11 @@ FIELD_KEYWORDS = {
 }
 
 
-def infer_schema_mapping(headers: Iterable[str]) -> dict[str, str]:
+def infer_schema_mapping(
+    headers: Iterable[str],
+    use_ai: bool = False,
+    sample_values: dict[str, str] | None = None,
+) -> dict[str, str]:
     normalized = [header.strip() for header in headers]
     mapping: dict[str, str] = {}
     used_headers: set[str] = set()
@@ -65,6 +72,23 @@ def infer_schema_mapping(headers: Iterable[str]) -> dict[str, str]:
                     mapping[field] = header
                     used_headers.add(header)
                     break
+
+    # Try AI enhancement if keyword matching is weak
+    if use_ai and len(mapping) < 4:  # Less than 4 fields matched by keywords
+        logger.info("Keyword mapping found only %d fields; attempting AI enhancement", len(mapping))
+        try:
+            from .ai_schema import infer_schema_mapping_with_ai
+
+            ai_mapping = infer_schema_mapping_with_ai(normalized, sample_values)
+            # Prefer AI mappings for fields we haven't found
+            for field, header in ai_mapping.items():
+                if field not in mapping and header not in used_headers:
+                    mapping[field] = header
+                    used_headers.add(header)
+                    logger.debug("AI suggestion: %s → %s", header, field)
+        except Exception as e:
+            logger.warning("AI schema mapping failed: %s (continuing with keyword mapping)", e)
+
     return mapping
 
 
@@ -90,8 +114,13 @@ def _matches_any_keyword(header: str, keywords: Iterable[str]) -> bool:
     return any(_matches_keyword(header, keyword) for keyword in keywords)
 
 
-def save_schema_mapping(headers: Iterable[str], output_path: str | bytes) -> dict[str, str]:
-    mapping = infer_schema_mapping(headers)
+def save_schema_mapping(
+    headers: Iterable[str],
+    output_path: str | bytes,
+    use_ai: bool = False,
+    sample_values: dict[str, str] | None = None,
+) -> dict[str, str]:
+    mapping = infer_schema_mapping(headers, use_ai=use_ai, sample_values=sample_values)
     write_yaml(mapping, output_path)
     return mapping
 

@@ -1,7 +1,11 @@
 from pathlib import Path
 
 from wine_importer.models import NormalizedWineRow
-from wine_importer.search import find_candidate_records, load_canonical_wines
+from wine_importer.search import (
+    find_candidate_records,
+    find_candidate_records_with_diagnostics,
+    load_canonical_wines,
+)
 
 
 def test_load_canonical_wines_with_capital_headers(tmp_path: Path) -> None:
@@ -72,6 +76,9 @@ def test_find_candidate_records_blocks_on_identity_fields(tmp_path: Path) -> Non
     candidates = find_candidate_records(row, wines)
     assert len(candidates) == 1
     assert candidates[0].producer == "Canopy"
+
+    diagnostic_candidates = find_candidate_records_with_diagnostics(row, wines)
+    assert diagnostic_candidates[0].blocking_reason == "producer"
 
 
 def test_find_candidate_records_rejects_without_strong_overlap(tmp_path: Path) -> None:

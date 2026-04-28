@@ -51,6 +51,18 @@ def test_read_input_file_unknown_extension_with_ai(tmp_path: Path) -> None:
     assert "not a normal table" in df.iloc[0]["raw_text"]
 
 
+def test_read_input_file_unknown_extension_with_ai_parses_text_table(tmp_path: Path) -> None:
+    path = tmp_path / "sample_input.foo"
+    path.write_text("producer|name|vintage\nFoo|Bar|2021\n", encoding="utf-8")
+
+    df = read_input_file(path, use_ai=True)
+
+    assert list(df.columns) == ["producer", "name", "vintage"]
+    assert df.iloc[0]["producer"] == "Foo"
+    assert df.iloc[0]["name"] == "Bar"
+    assert df.iloc[0]["vintage"] == "2021"
+
+
 def test_read_input_file_excel_default_sheet(tmp_path: Path) -> None:
     path = tmp_path / "sample_input.xlsx"
     df = pd.DataFrame({"producer": ["Chateau"], "name": ["Test"], "vintage": ["2020"]})

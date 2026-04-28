@@ -11,6 +11,7 @@ from .normalize import normalize_size, normalize_text
 
 CANONICAL_FIELD_ALIASES = {
     "bottle size": "size",
+    "bottlesize": "size",
     "winery": "producer",
     "wine": "name",
     "nation": "country",
@@ -72,16 +73,23 @@ class _CanonicalSearchRecord:
     tokens: frozenset[str]
 
 
+@dataclass(frozen=True)
+class CandidateSearchResult:
+    wine: CanonicalWine
+    blocking_reason: str
+
+
 def load_canonical_wines(path: str | Path) -> list[CanonicalWine]:
     records: list[CanonicalWine] = []
     for index, row in enumerate(_read_canonical_rows(path), start=1):
         row = _repair_canonical_row(row)
-        region = _clean_text(row.get("region")) or _clean_text(row.get("appellation")) or ""
-        appellation = _clean_text(row.get("appellation")) or region
-        varietal = _clean_text(row.get("varietal")) or appellation
-        notes = _collapse_notes(row)
-        producer = _clean_text(row.get("producer"))
-        name = _clean_text(row.get("name"))
+        extracted = _extract_canonical_fields(row)
+        region = extracted["region"] or extracted["appellation"] or ""
+        appellation = extracted["appellation"] or region
+        varietal = extracted["varietal"] or appellation
+        notes = extracted["notes"]
+        producer = extracted["producer"]
+        name = extracted["name"]
         if not producer and not name:
             continue
         records.append(
@@ -89,13 +97,13 @@ def load_canonical_wines(path: str | Path) -> list[CanonicalWine]:
                 id=str(index),
                 producer=producer or "",
                 name=name or "",
-                vintage=_clean_text(row.get("vintage")) or "",
-                country=_clean_text(row.get("country")) or None,
+                vintage=extracted["vintage"] or "",
+                country=extracted["country"] or None,
                 region=region,
                 appellation=appellation,
                 varietal=varietal,
-                quantity=_safe_int(row.get("quantity", "")),
-                size=_clean_text(row.get("size")) or "",
+                quantity=_safe_int(extracted["quantity"]),
+                size=extracted["size"] or "",
                 notes=notes or None,
             )
         )
@@ -145,13 +153,82 @@ def _clean_text(value: str | None) -> str | None:
 def _collapse_notes(row: dict[str, str]) -> str | None:
     notes_parts: list[str] = []
     for key, value in row.items():
-        if key == "notes" or key.startswith("_extra_"):
+        if key in {"notes", "bottlenote", "purchasenote", "privatenote", "tastingnotes"} or key.startswith("_extra_"):
             cleaned = _clean_text(value)
             if cleaned:
                 notes_parts.append(cleaned)
     if not notes_parts:
         return None
     return " | ".join(notes_parts)
+
+
+def _first_non_empty(*values: str | None) -> str | None:
+    for value in values:
+        cleaned = _clean_text(value)
+        if cleaned:
+            return cleaned
+    return None
+
+
+def _join_non_empty(*values: str | None) -> str | None:
+    parts: list[str] = []
+    for value in values:
+        cleaned = _clean_text(value)
+        if cleaned:
+            parts.append(cleaned)
+    if not parts:
+        return None
+    return " ".join(parts)
+
+
+def _extract_canonical_fields(row: dict[str, str]) -> dict[str, str | None]:
+    producer = _first_non_empty(
+        row.get("producer"),
+        row.get("winery"),
+        row.get("userwine1"),
+    )
+    name = _first_non_empty(row.get("name")) or _join_non_empty(
+        row.get("userwine2"),
+        row.get("userwine3"),
+        row.get("userwine4"),
+    )
+    country = _first_non_empty(
+        row.get("country"),
+        row.get("nation"),
+        row.get("userwine5"),
+    )
+    region = _first_non_empty(row.get("region")) or _join_non_empty(
+        row.get("userwine7"),
+        row.get("userwine8"),
+    ) or _first_non_empty(
+        row.get("userwine7"),
+        row.get("userwine6"),
+        row.get("userwine8"),
+    )
+    appellation = _first_non_empty(
+        row.get("appellation"),
+        row.get("userwine8"),
+        row.get("userwine3"),
+        row.get("userwine7"),
+        row.get("userwine6"),
+    )
+    varietal = _first_non_empty(
+        row.get("varietal"),
+        row.get("userwine2"),
+        row.get("userwine3"),
+    )
+    return {
+        "producer": producer,
+        "name": name,
+        "vintage": _first_non_empty(row.get("vintage")),
+        "country": country,
+        "region": region,
+        "appellation": appellation,
+        "varietal": varietal,
+        "quantity": _first_non_empty(row.get("quantity")),
+        "size": _first_non_empty(row.get("size"), row.get("bottlesize")),
+        "notes": _collapse_notes(row),
+    }
 
 
 def _repair_canonical_row(row: dict[str, str]) -> dict[str, str]:
@@ -191,34 +268,43 @@ def _has_token_overlap(value_a: str | None, value_b: str | None) -> bool:
     return bool(tokens_a & tokens_b)
 
 
+def _has_strong_name_token_overlap(value_a: str | None, value_b: str | None) -> bool:
+    if not value_a or not value_b:
+        return False
+    tokens_a = {token for token in value_a.split() if len(token) >= 4}
+    tokens_b = {token for token in value_b.split() if len(token) >= 4}
+    return bool(tokens_a & tokens_b)
+
+
 def _strong_producer_match(normalized_producer: str | None, canonical_producer: str | None) -> bool:
     if not normalized_producer or not canonical_producer:
         return False
     return fuzz.token_sort_ratio(normalized_producer, canonical_producer) >= 70
 
 
-def _passes_blocking(normalized_row: NormalizedWineRow, canonical: _CanonicalSearchRecord) -> bool:
+def _blocking_reason(
+    normalized_row: NormalizedWineRow,
+    canonical: _CanonicalSearchRecord,
+) -> str | None:
     producer = normalized_row.normalized_producer
     name = normalized_row.normalized_name
     appellation = normalized_row.normalized_appellation
-    region = normalized_row.normalized_region
-    varietal = normalized_row.normalized_varietal
 
     if _strong_producer_match(producer, canonical.producer):
-        return True
+        return "producer"
     if appellation and canonical.appellation and (
         appellation == canonical.appellation
         or appellation in canonical.appellation
         or canonical.appellation in appellation
     ):
-        return True
-    if _has_token_overlap(name, canonical.name):
-        return True
-    if _has_token_overlap(region, canonical.region):
-        return True
-    if _has_token_overlap(varietal, canonical.varietal):
-        return True
-    return False
+        return "appellation"
+    if _has_strong_name_token_overlap(name, canonical.name):
+        return "name_token"
+    return None
+
+
+def _passes_blocking(normalized_row: NormalizedWineRow, canonical: _CanonicalSearchRecord) -> bool:
+    return _blocking_reason(normalized_row, canonical) is not None
 
 
 def _tokenize(*values: str | None) -> frozenset[str]:
@@ -339,11 +425,30 @@ def _has_meaningful_token_overlap(
     return False
 
 
-def find_candidate_records(
+def _has_meaningful_identity_overlap(
+    normalized_row: NormalizedWineRow,
+    canonical: _CanonicalSearchRecord,
+    query_token_weights: dict[str, float],
+) -> bool:
+    if _blocking_reason(normalized_row, canonical):
+        return True
+    if _has_strong_name_token_overlap(normalized_row.normalized_name, canonical.name):
+        return True
+    if _has_token_overlap(normalized_row.normalized_producer, canonical.producer):
+        return True
+    if _has_token_overlap(normalized_row.normalized_appellation, canonical.appellation):
+        return True
+    return _has_meaningful_token_overlap(canonical, query_token_weights) and (
+        _has_token_overlap(normalized_row.normalized_name, canonical.name)
+        or _has_token_overlap(normalized_row.normalized_producer, canonical.producer)
+    )
+
+
+def find_candidate_records_with_diagnostics(
     normalized_row: NormalizedWineRow,
     canonical_wines: list[CanonicalWine],
     max_candidates: int = 10,
-) -> list[CanonicalWine]:
+) -> list[CandidateSearchResult]:
     if not canonical_wines or max_candidates <= 0:
         return []
 
@@ -361,20 +466,30 @@ def find_candidate_records(
     else:
         shortlist = list(range(len(search_records)))
 
-    ranked: list[tuple[bool, float, CanonicalWine]] = []
+    ranked: list[tuple[int, float, CandidateSearchResult]] = []
     for index in shortlist:
         record = search_records[index]
-        blocking_match = _passes_blocking(normalized_row, record)
+        reason = _blocking_reason(normalized_row, record)
         approximate_score = _approximate_candidate_score(normalized_row, record, query_token_weights)
-        if blocking_match or approximate_score >= 0.4:
-            ranked.append((blocking_match, approximate_score, record.wine))
+        if reason:
+            ranked.append((1, approximate_score, CandidateSearchResult(record.wine, reason)))
+        elif approximate_score >= 0.4 and _has_meaningful_identity_overlap(
+            normalized_row,
+            record,
+            query_token_weights,
+        ):
+            ranked.append((0, approximate_score, CandidateSearchResult(record.wine, "approximate")))
 
     if not ranked:
         fallback_ranked = sorted(
             (
                 (
                     _approximate_candidate_score(normalized_row, record, query_token_weights),
-                    _has_meaningful_token_overlap(record, query_token_weights),
+                    _has_meaningful_identity_overlap(
+                        normalized_row,
+                        record,
+                        query_token_weights,
+                    ),
                     record.wine,
                 )
                 for record in search_records
@@ -383,10 +498,25 @@ def find_candidate_records(
             reverse=True,
         )
         return [
-            wine
+            CandidateSearchResult(wine, "approximate")
             for score, has_meaningful_overlap, wine in fallback_ranked[:max_candidates]
             if has_meaningful_overlap and score > 0.3
         ]
 
     ranked.sort(key=lambda item: (item[0], item[1]), reverse=True)
-    return [wine for _, _, wine in ranked[:max_candidates]]
+    return [result for _, _, result in ranked[:max_candidates]]
+
+
+def find_candidate_records(
+    normalized_row: NormalizedWineRow,
+    canonical_wines: list[CanonicalWine],
+    max_candidates: int = 10,
+) -> list[CanonicalWine]:
+    return [
+        result.wine
+        for result in find_candidate_records_with_diagnostics(
+            normalized_row,
+            canonical_wines,
+            max_candidates=max_candidates,
+        )
+    ]

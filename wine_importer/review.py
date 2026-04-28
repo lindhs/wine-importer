@@ -1,3 +1,4 @@
+from .config import classify_review_score
 from .models import CandidateMatch, ReviewedMatch
 
 
@@ -9,15 +10,14 @@ def review_match_result(match_result: dict) -> ReviewedMatch:
         best_match = CandidateMatch(**ordered[0])
 
     score = best_match.score if best_match is not None else 0.0
-    if score >= 0.92:
-        status = "accepted"
-        reason = "High confidence automatic match"
-    elif 0.75 <= score < 0.92:
-        status = "review_needed"
-        reason = "Candidate requires manual verification"
-    else:
-        status = "rejected"
-        reason = "No strong candidate match found"
+    status, reason = classify_review_score(score)
+    top_1_score = float(ordered[0].get("score", 0.0)) if ordered else None
+    top_2_score = float(ordered[1].get("score", 0.0)) if len(ordered) > 1 else None
+    score_margin = (
+        top_1_score - top_2_score
+        if top_1_score is not None and top_2_score is not None
+        else None
+    )
 
     return ReviewedMatch(
         row_number=match_result.get("row_number", 0),
@@ -25,6 +25,10 @@ def review_match_result(match_result: dict) -> ReviewedMatch:
         best_match=best_match,
         status=status,
         reason=reason,
+        top_1_score=match_result.get("top_1_score", top_1_score),
+        top_2_score=match_result.get("top_2_score", top_2_score),
+        score_margin=match_result.get("score_margin", score_margin),
+        num_candidates=match_result.get("num_candidates", len(ordered)),
     )
 
 
