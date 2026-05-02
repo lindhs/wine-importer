@@ -53,6 +53,7 @@ def infer_schema_mapping(
     headers: Iterable[str],
     use_ai: bool = False,
     sample_values: dict[str, str] | None = None,
+    column_profiles: dict[str, dict] | None = None,
 ) -> dict[str, str]:
     normalized = [header.strip() for header in headers]
     mapping: dict[str, str] = {}
@@ -72,6 +73,24 @@ def infer_schema_mapping(
                     mapping[field] = header
                     used_headers.add(header)
                     break
+
+    if column_profiles:
+        for header in normalized:
+            if header in used_headers:
+                continue
+            profile = column_profiles.get(header) or {}
+            field = profile.get("best_field")
+            confidence = float(profile.get("confidence") or 0.0)
+            if field in FIELD_KEYWORDS and field not in mapping and confidence >= 0.65:
+                mapping[field] = header
+                used_headers.add(header)
+
+        _infer_text_identity_fields_from_profiles(
+            normalized,
+            mapping,
+            used_headers,
+            column_profiles,
+        )
 
     # Try AI enhancement if keyword matching is weak
     if use_ai and len(mapping) < 4:  # Less than 4 fields matched by keywords
@@ -119,10 +138,49 @@ def save_schema_mapping(
     output_path: str | bytes,
     use_ai: bool = False,
     sample_values: dict[str, str] | None = None,
+    column_profiles: dict[str, dict] | None = None,
 ) -> dict[str, str]:
-    mapping = infer_schema_mapping(headers, use_ai=use_ai, sample_values=sample_values)
+    mapping = infer_schema_mapping(
+        headers,
+        use_ai=use_ai,
+        sample_values=sample_values,
+        column_profiles=column_profiles,
+    )
     write_yaml(mapping, output_path)
     return mapping
+
+
+def _infer_text_identity_fields_from_profiles(
+    headers: list[str],
+    mapping: dict[str, str],
+    used_headers: set[str],
+    column_profiles: dict[str, dict],
+) -> None:
+    text_candidates = sorted(
+        (
+            (
+                index,
+                header,
+                float((column_profiles.get(header) or {}).get("text_score") or 0.0),
+            )
+            for index, header in enumerate(headers)
+            if header not in used_headers
+        ),
+        key=lambda item: item[0],
+    )
+    text_candidates = [
+        (index, header, score)
+        for index, header, score in text_candidates
+        if score >= 0.45
+    ]
+    if "producer" not in mapping and text_candidates:
+        _, header, _ = text_candidates.pop(0)
+        mapping["producer"] = header
+        used_headers.add(header)
+    if "name" not in mapping and text_candidates:
+        _, header, _ = text_candidates.pop(0)
+        mapping["name"] = header
+        used_headers.add(header)
 
 
 def apply_schema_mapping(raw_rows: list[RawRow], mapping: dict[str, str]) -> list[MappedWineRow]:

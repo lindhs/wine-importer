@@ -10,6 +10,9 @@ class RawRow(BaseModel):
     source_file: str
     row_number: int
     data: dict[str, str]
+    source_row_number: int | None = None
+    table_index: int | None = None
+    sheet_name: str | None = None
 
 
 class MappedWineRow(BaseModel):

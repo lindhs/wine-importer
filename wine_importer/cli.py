@@ -53,6 +53,16 @@ def inspect(
         "--use-ai",
         help="Enable AI features: semantic schema mapping, AI file parsing, semantic scoring.",
     ),
+    all_sheets: bool = typer.Option(
+        False,
+        "--all-sheets",
+        help="Scan all Excel sheets and combine detected wine tables.",
+    ),
+    ocr: bool = typer.Option(
+        False,
+        "--ocr",
+        help="Enable optional OCR for image inputs when OCR dependencies are installed.",
+    ),
 ) -> None:
     """Read CSV/TSV/XLSX and print detected columns, row count, and sample rows."""
     inspect_input(
@@ -60,6 +70,8 @@ def inspect(
         delimiter=delimiter,
         sheet_name=sheet_name,
         use_ai=use_ai,
+        all_sheets=all_sheets,
+        ocr=ocr,
     )
 
 
@@ -89,6 +101,21 @@ def run(
         "--export-rejected-as-unmatched",
         help="Export rejected rows as unmatched user-entered wines.",
     ),
+    all_sheets: bool = typer.Option(
+        False,
+        "--all-sheets",
+        help="Scan all Excel sheets and combine detected wine tables.",
+    ),
+    include_quarantine: bool = typer.Option(
+        False,
+        "--include-quarantine",
+        help="Include quarantined ingestion rows in review/report artifacts.",
+    ),
+    ocr: bool = typer.Option(
+        False,
+        "--ocr",
+        help="Enable optional OCR for image inputs when OCR dependencies are installed.",
+    ),
 ) -> None:
     """Run the full import pipeline and emit staged artifacts."""
     run_pipeline(
@@ -100,6 +127,9 @@ def run(
         use_ai=use_ai,
         export_review_needed=export_review_needed,
         export_rejected_as_unmatched=export_rejected_as_unmatched,
+        all_sheets=all_sheets,
+        include_quarantine=include_quarantine,
+        ocr=ocr,
     )
 
 

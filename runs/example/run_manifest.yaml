@@ -1,9 +1,12 @@
-input_path: data/raw/wine_raw_test1.csv
+input_path: data/raw/full_wine_list.csv
 canonical_path: data/canonical/wine_canonical_clean.csv
 output_path: runs/example/08_cellartracker_import.csv
 artifacts:
   raw_copy: runs/example/01_raw_copy.csv
+  structure_report: runs/example/01_structure_report.json
   parsed: runs/example/02_parsed_rows.json
+  ingestion_quarantine: runs/example/02_ingestion_quarantine.json
+  ingestion_quarantine_csv: runs/example/02_ingestion_quarantine.csv
   mapping: runs/example/03_mapping.yaml
   mapped: runs/example/04_mapped_rows.json
   normalized: runs/example/05_normalized_rows.json
@@ -12,16 +15,28 @@ artifacts:
   report: runs/example/09_match_report.csv
   input_quality: runs/example/02_input_quality.json
 stats:
-  rows_parsed: 31
-  rows_mapped: 31
-  rows_normalized: 31
-  candidate_sets: 31
-  reviewed_matches: 31
-  accepted_matches: 29
-  review_needed_matches: 0
-  rejected_matches: 2
+  rows_parsed: 338
+  rows_quarantined: 24
+  rows_mapped: 338
+  rows_normalized: 338
+  candidate_sets: 338
+  reviewed_matches: 338
+  accepted_matches: 60
+  review_needed_matches: 3
+  rejected_matches: 275
 policy:
-  review_min_score: 0.55
+  accept_threshold: 0.7
+  review_threshold: 0.55
+  ai_score_min: 0.55
+  ai_score_max: 0.7
   review_accept_score: 0.7
+  review_min_score: 0.55
   ai_scoring_min_score: 0.55
   ai_scoring_max_score: 0.7
+export_policy:
+  export_review_needed: false
+  export_rejected_as_unmatched: false
+  include_quarantine: false
+ingestion_policy:
+  all_sheets: false
+  ocr: false

@@ -18,6 +18,11 @@ dev = [
     "pytest>=8.0",
     "ruff>=0.0",
 ]
+documents = [
+    "pypdf>=4.0",
+    "Pillow>=10.0",
+    "pytesseract>=0.3",
+]
 [project.scripts]
 wine-importer = "wine_importer.cli:app"
 [build-system]

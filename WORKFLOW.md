@@ -37,6 +37,14 @@ Use `--use-ai` when headers are unusual, non-English, or when you want AI
 semantic scoring for borderline matches. The deterministic path is the default
 and works without an API key.
 
+Useful ingestion options:
+
+```bash
+wine-importer run workbook.xlsx --canonical data/canonical/wine_canonical_clean.csv --out-dir runs/example --all-sheets
+wine-importer run notes.txt --canonical data/canonical/wine_canonical_clean.csv --out-dir runs/example --include-quarantine
+wine-importer run cellar_photo.png --canonical data/canonical/wine_canonical_clean.csv --out-dir runs/example --ocr
+```
+
 ## Flowchart
 
 ```mermaid
@@ -44,8 +52,8 @@ flowchart TD
     A[Raw wine file] --> B[Stage 0: validate files]
     C[Canonical wine CSV] --> B
 
-    B --> D[Stage 1: save raw copy]
-    D --> E[Stage 2: parse rows]
+    B --> D[Stage 1: detect/extract table structure]
+    D --> E[Stage 2: parse extracted rows]
 
     E --> F{--use-ai enabled?}
     F -->|yes| G[Optional AI input quality report]
@@ -83,6 +91,9 @@ The main input is a raw cellar list in one of the supported formats:
 - CSV, TSV, TXT, and delimiter-separated text files.
 - XLSX, XLS, and XLSM spreadsheets.
 - JSON files readable by pandas.
+- Line-oriented plain text inventories such as `Ridge Lytton Springs 1993 - 2 bottles`.
+- Text-based PDFs when optional PDF dependencies are installed.
+- Image/OCR inputs when optional OCR dependencies are installed and `--ocr` is set.
 - Unknown text-like files when `--use-ai` is enabled.
 
 The canonical input is a CSV of known wines. The loader supports both simple
@@ -101,33 +112,62 @@ size, an appellation looks like a quantity, or a country looks like a wine name.
 
 Artifact: none.
 
-### Stage 1: Raw Copy
+### Stage 1: Detect and Extract Table Structure
 
-The input file is read with the same parser that will be used for processing,
-then written back out as a CSV copy. This gives a stable snapshot of what the
-pipeline saw at runtime.
+The input file is read into the ingestion layer first. For tables, the parser
+loads raw cells with no trusted header row, scans for wine-like table regions,
+skips title/metadata rows, combines compatible tables, and writes the extracted
+table as the raw copy used by later stages.
+
+Detection uses both header evidence and data-value evidence:
+
+- header tokens such as producer, name, vintage, bottles, size, region, and varietal
+- value profiles such as year-like vintages, bottle sizes, quantities, countries, and dates
+- field evidence per column for later schema mapping
+
+Plain text inputs are parsed line by line with deterministic vintage, quantity,
+size, location, and text-name patterns. PDF and OCR inputs are best-effort: if
+the optional dependency or system OCR tool is missing, the run writes a clear
+quarantine item instead of crashing.
+
+The structure report records extraction method, confidence, selected/skipped
+regions, field evidence, warnings, and quarantine count.
 
 Artifact:
 
 ```text
 01_raw_copy.csv
+01_structure_report.json
+02_ingestion_quarantine.json
+02_ingestion_quarantine.csv
 ```
 
 ### Stage 2: Parse Rows
 
-The parser converts the input file into `RawRow` records. Each row has:
+The parser converts the extracted table into `RawRow` records. Each row has:
 
 - source file name
-- row number
+- pipeline row number
+- source row number from the original spreadsheet when available
+- table index when rows came from combined table regions
 - original field/value mapping
 
 Delimiter detection handles comma, semicolon, tab, and pipe-separated files.
-Excel files are read through pandas and openpyxl.
+Excel files are read through pandas and openpyxl. If no clear header row is
+detected, generic columns such as `column_1` are used so schema validation can
+fail clearly or value-profile/AI schema mapping can be attempted.
+
+Rows or regions that do not have enough wine evidence are quarantined with a
+source row/page and reason. They are not silently treated as valid wine rows.
+Set `--include-quarantine` to carry those items into the reviewed/report
+artifacts as rejected rows for manual follow-up.
 
 Artifact:
 
 ```text
 02_parsed_rows.json
+02_ingestion_quarantine.json
+02_ingestion_quarantine.csv
 ```
 
 ### Optional AI Input Quality Report
@@ -159,9 +199,12 @@ The schema mapper converts raw headers into internal fields such as:
 - `bin`
 - `notes`
 
-The deterministic mapper uses header aliases and normalized header matching.
-Examples: `Winery` maps to `producer`, `Wine Label` maps to `name`, `Qty` maps
-to `quantity`, and `BottleSize` maps to `size`.
+The deterministic mapper uses header aliases, normalized header matching, and
+column profiles from ingestion. Examples: `Winery` maps to `producer`, `Wine
+Label` maps to `name`, `Qty` maps to `quantity`, and `BottleSize` maps to
+`size`. If headers are generic, a column full of `1990`, `1991`, and `NV` can
+map to `vintage`; `750 ml` and `375 ml` can map to `size`; small integers can
+map to `quantity`; text-like leading columns can become `producer` and `name`.
 
 If `--use-ai` is enabled and deterministic mapping is weak, AI schema mapping is
 used as a fallback.
@@ -359,8 +402,10 @@ The manifest records:
 - final export path
 - all artifact paths
 - row counts
+- quarantine counts
 - accepted, review-needed, and rejected counts
 - active score thresholds
+- export and ingestion options
 
 Use it as the run audit trail.
 
@@ -370,6 +415,7 @@ The full pipeline is normally easiest, but individual stages are available:
 
 ```bash
 wine-importer inspect data/raw/sample_input.csv
+wine-importer inspect data/raw/workbook.xlsx --all-sheets
 wine-importer normalize runs/example/04_mapped_rows.json --out runs/example/05_normalized_rows.json
 wine-importer match runs/example/05_normalized_rows.json --canonical data/canonical/sample_canonical.csv --out runs/example/06_candidate_matches.json
 wine-importer review runs/example/06_candidate_matches.json --out runs/example/07_reviewed_matches.json
@@ -383,7 +429,9 @@ wine-importer report runs/example/07_reviewed_matches.json --out runs/example/09
 If schema mapping fails, inspect:
 
 ```text
+01_structure_report.json
 02_parsed_rows.json
+02_ingestion_quarantine.json
 03_mapping.yaml
 ```
 

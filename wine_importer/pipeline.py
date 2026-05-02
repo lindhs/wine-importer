@@ -8,9 +8,13 @@ from .config import (
 )
 from .export import export_reviewed_matches
 from .ai_runtime import load_project_env
+from .ingest import quarantine_to_dataframe
 from .io import write_json, write_yaml
-from .models import MatchResult
-from .parse import load_raw_rows, save_raw_copy
+from .models import MatchResult, ReviewedMatch
+from .parse import (
+    raw_rows_from_structured_input,
+    read_ingested_input_file,
+)
 from .report import export_review_report
 from .review import review_matches
 from .score import rank_candidates
@@ -89,6 +93,9 @@ def run_pipeline(
     use_ai: bool = False,
     export_review_needed: bool = False,
     export_rejected_as_unmatched: bool = False,
+    all_sheets: bool = False,
+    include_quarantine: bool = False,
+    ocr: bool = False,
 ) -> dict[str, str]:
     """
     Run the full wine-importer pipeline with validation and AI enhancements.
@@ -128,8 +135,11 @@ def run_pipeline(
     out_dir_path.mkdir(parents=True, exist_ok=True)
 
     raw_copy_path = out_dir_path / "01_raw_copy.csv"
+    structure_report_path = out_dir_path / "01_structure_report.json"
     input_quality_path = out_dir_path / "02_input_quality.json"
     parsed_path = out_dir_path / "02_parsed_rows.json"
+    quarantine_json_path = out_dir_path / "02_ingestion_quarantine.json"
+    quarantine_csv_path = out_dir_path / "02_ingestion_quarantine.csv"
     mapping_path = out_dir_path / "03_mapping.yaml"
     mapped_path = out_dir_path / "04_mapped_rows.json"
     normalized_path = out_dir_path / "05_normalized_rows.json"
@@ -141,18 +151,35 @@ def run_pipeline(
     console.print("[bold blue]Starting pipeline[/bold blue]")
     input_quality = None
 
-    # Stage 1: Raw copy
+    # Stage 1: Detect and extract table structure
     try:
-        log_stage_start(1, "Raw copy")
-        save_raw_copy(
+        log_stage_start(1, "Detect and extract table structure")
+        structured_input = read_ingested_input_file(
             input_path,
-            raw_copy_path,
             delimiter=delimiter,
             sheet_name=sheet_name,
             use_ai=use_ai,
+            all_sheets=all_sheets,
+            ocr=ocr,
+        )
+        structured_input.dataframe.to_csv(raw_copy_path, index=False)
+        write_json(structured_input.to_report(), structure_report_path)
+        quarantine_items = [
+            item.to_dict() for item in structured_input.quarantine_items
+        ]
+        write_json(quarantine_items, quarantine_json_path)
+        quarantine_to_dataframe(structured_input.quarantine_items).to_csv(
+            quarantine_csv_path,
+            index=False,
         )
         console.print(f"Saved raw copy to [green]{raw_copy_path}[/green]")
-        log_stage_complete(1, 0)
+        console.print(
+            f"Saved structure report to [green]{structure_report_path}[/green]"
+        )
+        console.print(
+            f"Saved ingestion quarantine to [green]{quarantine_json_path}[/green]"
+        )
+        log_stage_complete(1, len(structured_input.dataframe))
     except Exception as e:
         logger.error(f"Stage 1 failed: {e}")
         console.print(f"[red bold]✗ Stage 1 failed: {e}[/red bold]")
@@ -161,11 +188,9 @@ def run_pipeline(
     # Stage 2: Parse rows
     try:
         log_stage_start(2, "Parse rows")
-        raw_rows = load_raw_rows(
-            input_path,
-            delimiter=delimiter,
-            sheet_name=sheet_name,
-            use_ai=use_ai,
+        raw_rows = raw_rows_from_structured_input(
+            structured_input,
+            str(Path(input_path).name),
         )
         write_json(_serialize_models(raw_rows), parsed_path)
         console.print(f"Saved parsed rows to [green]{parsed_path}[/green]")
@@ -200,6 +225,7 @@ def run_pipeline(
                 mapping_path,
                 use_ai=use_ai,
                 sample_values=sample_values,
+                column_profiles=structured_input.field_evidence,
             )
             validate_schema_mapping(mapping, headers)
         except ValueError as e:
@@ -288,6 +314,24 @@ def run_pipeline(
     try:
         log_stage_start(7, "Review matches")
         reviewed = review_matches([result.model_dump() for result in match_results])
+        if include_quarantine:
+            first_quarantine_row = len(reviewed) + 1
+            for offset, item in enumerate(structured_input.quarantine_items):
+                reviewed.append(
+                    ReviewedMatch(
+                        row_number=first_quarantine_row + offset,
+                        user_row={
+                            **(item.data or {}),
+                            "quarantine_reason": item.reason,
+                            "source_name": item.source_name,
+                            "source_row_number": item.row_number,
+                        },
+                        best_match=None,
+                        status="rejected",
+                        reason=f"Quarantined during ingestion: {item.reason}",
+                        num_candidates=0,
+                    )
+                )
         write_json(_serialize_models(reviewed), reviewed_path)
         console.print(f"Saved reviewed matches to [green]{reviewed_path}[/green]")
 
@@ -337,7 +381,10 @@ def run_pipeline(
         manifest_path = out_dir_path / "run_manifest.yaml"
         artifacts = {
             "raw_copy": str(raw_copy_path),
+            "structure_report": str(structure_report_path),
             "parsed": str(parsed_path),
+            "ingestion_quarantine": str(quarantine_json_path),
+            "ingestion_quarantine_csv": str(quarantine_csv_path),
             "mapping": str(mapping_path),
             "mapped": str(mapped_path),
             "normalized": str(normalized_path),
@@ -355,6 +402,7 @@ def run_pipeline(
             "artifacts": artifacts,
             "stats": {
                 "rows_parsed": len(raw_rows),
+                "rows_quarantined": len(structured_input.quarantine_items),
                 "rows_mapped": len(mapped_rows),
                 "rows_normalized": len(normalized_rows),
                 "candidate_sets": len(match_results),
@@ -367,6 +415,11 @@ def run_pipeline(
             "export_policy": {
                 "export_review_needed": export_review_needed,
                 "export_rejected_as_unmatched": export_rejected_as_unmatched,
+                "include_quarantine": include_quarantine,
+            },
+            "ingestion_policy": {
+                "all_sheets": all_sheets,
+                "ocr": ocr,
             },
         }
         write_yaml(manifest, manifest_path)
@@ -379,7 +432,10 @@ def run_pipeline(
 
     result = {
         "raw_copy": str(raw_copy_path),
+        "structure_report": str(structure_report_path),
         "parsed": str(parsed_path),
+        "ingestion_quarantine": str(quarantine_json_path),
+        "ingestion_quarantine_csv": str(quarantine_csv_path),
         "mapping": str(mapping_path),
         "mapped": str(mapped_path),
         "normalized": str(normalized_path),

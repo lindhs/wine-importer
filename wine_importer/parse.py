@@ -1,31 +1,46 @@
-import csv
 from pathlib import Path
 
 import pandas as pd
 from rich.console import Console
 from rich.table import Table
 
-from .ai_parser import ai_parse_file
+from .ingest import IngestionResult, ingest_file, raw_rows_from_ingestion
 from .models import RawRow
+from .table_detect import StructuredInput
 
 console = Console()
 
-DELIMITER_CANDIDATES = ",;\t|"
+
+def read_ingested_input_file(
+    path: str | Path,
+    delimiter: str | None = None,
+    sheet_name: str | None = None,
+    use_ai: bool = False,
+    all_sheets: bool = False,
+    ocr: bool = False,
+) -> IngestionResult:
+    return ingest_file(
+        path,
+        delimiter=delimiter,
+        sheet_name=sheet_name,
+        use_ai=use_ai,
+        all_sheets=all_sheets,
+        ocr=ocr,
+    )
 
 
-def _detect_delimiter(path: Path, default: str) -> str:
-    try:
-        sample = path.read_text(encoding="utf-8", errors="ignore")[:8192]
-    except OSError:
-        return default
-
-    if not sample.strip():
-        return default
-
-    try:
-        return csv.Sniffer().sniff(sample, delimiters=DELIMITER_CANDIDATES).delimiter
-    except csv.Error:
-        return default
+def read_structured_input_file(
+    path: str | Path,
+    delimiter: str | None = None,
+    sheet_name: str | None = None,
+    use_ai: bool = False,
+) -> StructuredInput:
+    return read_ingested_input_file(
+        path,
+        delimiter=delimiter,
+        sheet_name=sheet_name,
+        use_ai=use_ai,
+    ).to_structured_input()
 
 
 def read_input_file(
@@ -34,27 +49,12 @@ def read_input_file(
     sheet_name: str | None = None,
     use_ai: bool = False,
 ) -> pd.DataFrame:
-    path = Path(path)
-    suffix = path.suffix.lower()
-    if suffix in {".xlsx", ".xls", ".xlsm"}:
-        if sheet_name is None:
-            return pd.read_excel(path, dtype=str, engine="openpyxl")
-        return pd.read_excel(path, dtype=str, engine="openpyxl", sheet_name=sheet_name)
-    if suffix == ".json":
-        return pd.read_json(path)
-    if use_ai and suffix not in {".csv", ".tsv", ".txt", ".json", ""}:
-        return ai_parse_file(path)
-
-    if delimiter is None and suffix in {".csv", ".tsv", ".txt", ""}:
-        default_delimiter = "\t" if suffix == ".tsv" else ","
-        delimiter = _detect_delimiter(path, default_delimiter)
-
-    try:
-        return pd.read_csv(path, dtype=str, sep=delimiter or ",")
-    except Exception:
-        if use_ai:
-            return ai_parse_file(path)
-        raise
+    return read_structured_input_file(
+        path,
+        delimiter=delimiter,
+        sheet_name=sheet_name,
+        use_ai=use_ai,
+    ).dataframe
 
 
 def inspect_input(
@@ -62,13 +62,18 @@ def inspect_input(
     delimiter: str | None = None,
     sheet_name: str | None = None,
     use_ai: bool = False,
+    all_sheets: bool = False,
+    ocr: bool = False,
 ) -> pd.DataFrame:
-    df = read_input_file(
+    ingested = read_ingested_input_file(
         path,
         delimiter=delimiter,
         sheet_name=sheet_name,
         use_ai=use_ai,
-    ).fillna("")
+        all_sheets=all_sheets,
+        ocr=ocr,
+    )
+    df = ingested.dataframe.fillna("")
     table = Table(title=f"Preview: {path}")
     for column in df.columns:
         table.add_column(column, overflow="fold")
@@ -79,7 +84,41 @@ def inspect_input(
     console.print(table)
     console.print(f"[bold]Columns:[/bold] {len(df.columns)}")
     console.print(f"[bold]Rows:[/bold] {len(df)}")
+    console.print(
+        "[bold]Detected tables:[/bold] "
+        f"selected={len(ingested.selected_regions)} "
+        f"skipped={len(ingested.skipped_regions)} "
+        f"quarantine={len(ingested.quarantine_items)}"
+    )
+    if ingested.selected_regions:
+        confidences = ", ".join(
+            f"{region.confidence:.2f}" for region in ingested.selected_regions
+        )
+        console.print(f"[bold]Structure confidence:[/bold] {confidences}")
+    for warning in ingested.warnings:
+        console.print(f"[yellow]{warning}[/yellow]")
     return df
+
+
+def raw_rows_from_structured_input(
+    structured: StructuredInput | IngestionResult,
+    source_file: str,
+) -> list[RawRow]:
+    if isinstance(structured, IngestionResult):
+        return raw_rows_from_ingestion(structured, source_file)
+    return raw_rows_from_ingestion(
+        IngestionResult(
+            dataframe=structured.dataframe,
+            detected_regions=[],
+            quarantine_items=[],
+            warnings=structured.warnings,
+            source_row_numbers=structured.source_row_numbers,
+            table_indices=structured.table_indices,
+            field_evidence={},
+            sheet_name=structured.sheet_name,
+        ),
+        source_file,
+    )
 
 
 def load_raw_rows(
@@ -88,18 +127,13 @@ def load_raw_rows(
     sheet_name: str | None = None,
     use_ai: bool = False,
 ) -> list[RawRow]:
-    df = read_input_file(
+    structured = read_structured_input_file(
         path,
         delimiter=delimiter,
         sheet_name=sheet_name,
         use_ai=use_ai,
-    ).fillna("")
-    source_file = str(Path(path).name)
-    rows: list[RawRow] = []
-    for index, record in enumerate(df.to_dict(orient="records"), start=1):
-        record_str = {str(key): str(value).strip() for key, value in record.items()}
-        rows.append(RawRow(source_file=source_file, row_number=index, data=record_str))
-    return rows
+    )
+    return raw_rows_from_structured_input(structured, str(Path(path).name))
 
 
 def save_raw_copy(

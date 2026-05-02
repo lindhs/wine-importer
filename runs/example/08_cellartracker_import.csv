@@ -1,32 +1,72 @@
 Vintage,UserWine1,UserWine2,Quantity,BottleSize,Location,Bin,Notes
-,Canopy,Tres Patas Garnacha,1,750ml,,1A,Red Wine; Vivino avg 3.7; 1322 ratings; https://www.vivino.com/wines/3750901 | match_status=accepted | High confidence automatic match | canonical_id=1
-,Bolla,Le Poiane Amarone della Valpolicella Classico,1,750ml,,,match_status=accepted | High confidence automatic match | canonical_id=2
-2015,Villa Mongalli,Pozzo del Curato Sagrantino di Montefalco,1,,,,match_status=accepted | High confidence automatic match | canonical_id=3
+2019,Domaine des Tourelles,Marquis des Beys Rouge,,,,,"Mycket torrt. Friska bär, lite juicigt. hallon, lakrits, ek. | match_status=accepted | High confidence automatic match | canonical_id=8"
+2024,Trediberri,Dogliani,,,,,"Maffigare än förväntat, relativt låg syra, stora smaker av vanilj, trä och solmogna hallon. | match_status=accepted | High confidence automatic match | canonical_id=31"
+2022,Canopy,Tres Patas Garnacha,,,,,match_status=accepted | High confidence automatic match | canonical_id=1
+2023,Mauro Veglio,Langhe Nebbiolo Angelo,,,,,"Frisk nebbiolo, grippiga tanniner men med syra som ger lätthet. Syrliga hallon, frukter och något mörkare, lakrits och läder. Blev några flaskor till, detta är en ny favorit... mycket gott! | match_status=accepted | High confidence automatic match | canonical_id=27"
+,Canopy,Tres Patas Garnacha,,,,,match_status=accepted | High confidence automatic match | canonical_id=1
+2023,Mauro Veglio,Langhe Nebbiolo Angelo,,,,,match_status=accepted | High confidence automatic match | canonical_id=27
+2020,Château Lapelletrie,Saint-Émilion Grand Cru,,,,,"Gott! Typisk mineralitet. Rätt fruktig, väldigt syrlig, bärig rund. | match_status=accepted | High confidence automatic match | canonical_id=6"
+2022,Pasqua Vigneti e Cantine,Famiglia Pasqua Valpolicella Ripasso,,,,,"Gott vin detta! Utmärkt till mat, men hade väntat mig något lite lättare. Här har vi rätt stort vin, lagom syra o tanniner med mörka bär och ek. Inte den typiske ripasson kanske! | match_status=accepted | High confidence automatic match | canonical_id=24"
+2021,Collina del Sole,Barolo,,,,,match_status=accepted | High confidence automatic match | canonical_id=17
+2023,Renato Ratti,Ochetti Nebbiolo,,,,,match_status=accepted | High confidence automatic match | canonical_id=20
+2024,La Spinetta,Langhe Nebbiolo,,,,,match_status=accepted | High confidence automatic match | canonical_id=29
 2019,Antonelli San Marco,Sagrantino Montefalco,,,,,match_status=accepted | High confidence automatic match | canonical_id=4
-2018,Vinarija Vuina,Crljenak Štafileo,,,Cellar A,,Red Wine; Vivino avg 4.0; 599 ratings; https://www.vivino.com/wines/160775754 | match_status=accepted | High confidence automatic match | canonical_id=5
-2020,Château Lapelletrie,Saint-Émilion Grand Cru,,,,6A,Red Wine; Vivino avg 4.0; 5529 ratings; https://www.vivino.com/wines/163633290 | match_status=accepted | High confidence automatic match | canonical_id=6
-2020,Bertani,Catullo Valpolicella Ripasso Classico Superiore,,750ml,,,match_status=accepted | High confidence automatic match | canonical_id=7
-2019,Domaine des Tourelles,Marquis des Beys Rouge,1,750ml,,,match_status=accepted | High confidence automatic match | canonical_id=8
-2021,Bottega,Valpolicella Ripasso Superiore,1,750ml,,,match_status=accepted | High confidence automatic match | canonical_id=9
-2021,G.D. Vajra,Albe Barolo,1,750ml,,,match_status=accepted | High confidence automatic match | canonical_id=10
-2021,Luigi Righetti,Capitel de Roari Amarone della Valpolicella Classico,2,750ml,,,Red Wine; Vivino avg 4.1; 30453 ratings; https://www.vivino.com/wines/167246887 | match_status=accepted | High confidence automatic match | canonical_id=11
-2019,San Fereolo,Il Provinciale,,,,,match_status=accepted | High confidence automatic match | canonical_id=12
-2022,Roberto Voerzio,Disanfrancesco Nebbiolo,,750ml,,,Red Wine; Vivino avg 4.0; 8311 ratings; https://www.vivino.com/wines/170605804 | match_status=rejected | No strong candidate match found | canonical_id=13
-2019,San Fereolo,Il Provinciale,1,750ml,,,match_status=rejected | No strong candidate match found | canonical_id=12
-2015,Carbonaia,Montefalco Sagrantino,1,,,,match_status=accepted | High confidence automatic match | canonical_id=15
-2021,Alberto Ballarin,Barolo Bussia,1,750ml,,,Red Wine; Vivino avg 4.1; 239 ratings; https://www.vivino.com/wines/173096918 | match_status=accepted | High confidence automatic match | canonical_id=16
-2021,Collina del Sole,Barolo,1,750ml,Cellar A,,match_status=accepted | High confidence automatic match | canonical_id=17
-2021,Terra Madre,Plavac Mali Barrique,1,750ml,,,match_status=accepted | High confidence automatic match | canonical_id=18
-2023,Tenuta San Guido,Le Difese,1,750ml,,,Red Wine; Vivino avg 3.8; 52972 ratings; https://www.vivino.com/wines/173723532 | match_status=accepted | High confidence automatic match | canonical_id=19
-2023,Renato Ratti,Ochetti Nebbiolo,1,,,,Red Wine; Vivino avg 3.9; 17757 ratings; https://www.vivino.com/wines/173923332 | match_status=accepted | High confidence automatic match | canonical_id=20
-2020,Pietro Clementi,Valpolicella Ripasso Classico Superiore,1,,Cellar A,,match_status=accepted | High confidence automatic match | canonical_id=21
-2023,Giacomo Grimaldi,Dolcetto d'Alba,,750ml,,,Red Wine; Vivino avg 3.7; 1502 ratings; https://www.vivino.com/wines/174067777 | match_status=accepted | High confidence automatic match | canonical_id=22
+2019,Antonelli San Marco,Sagrantino Montefalco,,,,,match_status=accepted | High confidence automatic match | canonical_id=4
+2020,Bertani,Catullo Valpolicella Ripasso Classico Superiore,,,,,match_status=accepted | High confidence automatic match | canonical_id=7
+2023,Tenuta San Guido,Le Difese,,,,,match_status=accepted | High confidence automatic match | canonical_id=19
+2022,Roberto Voerzio,Disanfrancesco Nebbiolo,,,,,match_status=accepted | High confidence automatic match | canonical_id=13
+2018,Vinarija Vuina,Crljenak Štafileo,,,,,match_status=accepted | High confidence automatic match | canonical_id=5
+2023,Giacomo Grimaldi,Dolcetto d'Alba,,,,,"Favoritproducent! Lätt, fruktigt, bra syra och fina röda frukter. Torrt och relativt mjuka tanniner! Fint avslut med bra ekiga toner | match_status=accepted | High confidence automatic match | canonical_id=22"
+2023,Giacomo Grimaldi,Dolcetto d'Alba,,,,,match_status=accepted | High confidence automatic match | canonical_id=22
+2020,Château Lapelletrie,Saint-Émilion Grand Cru,,,,,match_status=accepted | High confidence automatic match | canonical_id=6
+2022,Roberto Voerzio,Disanfrancesco Nebbiolo,,,,,match_status=accepted | High confidence automatic match | canonical_id=13
+2020,San Fereolo,Il Provinciale,,,,,match_status=accepted | High confidence automatic match | canonical_id=14
+2023,Paolo Conterno,A Mont Langhe Nebbiolo,,,,,match_status=accepted | High confidence automatic match | canonical_id=28
 2023,Bodegas Roda,Roda Reserva Rioja,,,,,match_status=accepted | High confidence automatic match | canonical_id=23
-,Pasqua Vigneti e Cantine,Famiglia Pasqua Valpolicella Ripasso,1,,,,match_status=accepted | High confidence automatic match | canonical_id=24
-,Langlois,Crémant de Loire Cadence Extra Brut,,750ml,Cellar A,,match_status=accepted | High confidence automatic match | canonical_id=25
-2020,Mormoraia,Trochus Chianti Colli Senesi Riserva,,,,26A,Red Wine; Vivino avg 4.2; 233 ratings; https://www.vivino.com/wines/176467903 | match_status=accepted | High confidence automatic match | canonical_id=26
-2023,Mauro Veglio,Langhe Nebbiolo Angelo,,,,,Red Wine; Vivino avg 3.8; 2556 ratings; https://www.vivino.com/wines/178242740 | match_status=accepted | High confidence automatic match | canonical_id=27
-2023,Paolo Conterno,A Mont Langhe Nebbiolo,1,,,,Red Wine; Vivino avg 3.8; 2507 ratings; https://www.vivino.com/wines/178667753 | match_status=accepted | High confidence automatic match | canonical_id=28
-2024,La Spinetta,Langhe Nebbiolo,1,750ml,Cellar A,,match_status=accepted | High confidence automatic match | canonical_id=29
-2024,Vinarija Vuina,Crljenak Štafileo,1,,,,Red Wine; Vivino avg 4.0; 599 ratings; https://www.vivino.com/wines/180144910 | match_status=accepted | High confidence automatic match | canonical_id=30
-2024,Trediberri,Dogliani,,,,31A,match_status=accepted | High confidence automatic match | canonical_id=31
+2021,Alberto Ballarin,Barolo Bussia,,,,,match_status=accepted | High confidence automatic match | canonical_id=16
+2021,G.D. Vajra,Albe Barolo,,,,,match_status=accepted | High confidence automatic match | canonical_id=10
+2021,Luigi Righetti,Capitel de Roari Amarone della Valpolicella Classico,,,,,match_status=accepted | High confidence automatic match | canonical_id=11
+,Bolla,Le Poiane Amarone della Valpolicella Classico,,,,,match_status=accepted | High confidence automatic match | canonical_id=2
+2019,Bolla,Le Poiane Amarone della Valpolicella Classico,,,,,match_status=accepted | High confidence automatic match | canonical_id=2
+2019,Domaine des Tourelles,Marquis des Beys Rouge,,,,,match_status=accepted | High confidence automatic match | canonical_id=8
+2021,Luigi Righetti,Capitel de Roari Amarone della Valpolicella Classico,,,,,match_status=accepted | High confidence automatic match | canonical_id=11
+2024,Trediberri,Dogliani,,,,,match_status=accepted | High confidence automatic match | canonical_id=31
+,Langlois,Crémant de Loire Cadence Extra Brut,,,,,match_status=accepted | High confidence automatic match | canonical_id=25
+2020,Mormoraia,Trochus Chianti Colli Senesi Riserva,,,,,match_status=accepted | High confidence automatic match | canonical_id=26
+2023,Giacomo Grimaldi,Dolcetto d'Alba,,,,,"Köpt i Rapallo, 15-18€
+
+Hög syra, mjuka tanniner.
+Syrliga röda frukter, lite lingon.. lakrits. 
+
+Fantastisk och spännande Dolcetto, lite hög syra annars fantastisk profil. | match_status=accepted | High confidence automatic match | canonical_id=22"
+2021,Terra Madre,Plavac Mali Barrique,,,,,match_status=accepted | High confidence automatic match | canonical_id=18
+2015,Carbonaia,Montefalco Sagrantino,,,,,"En rätt klassisk sagrantino, lite svår i början men öppnades upp tillslut. Doften är lite sluten, bärigt men slutliga rätt mäktiga lakritstoner. Smaken är solmogna hallon hela vägen igenom, höga tanniner som förväntat av druvan, fortsatt tema lakrits. Är positivt förvånad bland de rätt olika rescencionerna, bang for buck. | match_status=accepted | High confidence automatic match | canonical_id=15"
+,Pasqua Vigneti e Cantine,Famiglia Pasqua Valpolicella Ripasso,,,,,match_status=accepted | High confidence automatic match | canonical_id=24
+2015,Carbonaia,Montefalco Sagrantino,,,,,match_status=accepted | High confidence automatic match | canonical_id=15
+2019,San Fereolo,Il Provinciale,,,,,match_status=accepted | High confidence automatic match | canonical_id=12
+2018,Vinarija Vuina,Crljenak Štafileo,,,,,match_status=accepted | High confidence automatic match | canonical_id=5
+2024,Vinarija Vuina,Crljenak Štafileo,,,,,match_status=accepted | High confidence automatic match | canonical_id=30
+2021,Bottega,Valpolicella Ripasso Superiore,,,,,match_status=accepted | High confidence automatic match | canonical_id=9
+2023,Renato Ratti,Ochetti Nebbiolo,,,,,"Lättdrucken nebbiolo, druvenlig. Hög syrlighet gör den lite krispig, röda frukterna är väldigt framgående, lite träiga smaker. oak strawberry | match_status=accepted | High confidence automatic match | canonical_id=20"
+2015,Villa Mongalli,Pozzo del Curato Sagrantino di Montefalco,,,,,"Mycket gott, som förmodat är det väldigt kraftigt, med tanke på Sagrantino 's tanniner och den höga alkoholhalten. Mycket smak av mörka bär, blåbär , björnbär. Väldigt gott till ost som idag, hade varit ännu bättre till någon maffigare mat som köttig pasta eller dylikt. blackberry dark fruit blueberry licorice | match_status=accepted | High confidence automatic match | canonical_id=3"
+2015,Villa Mongalli,Pozzo del Curato Sagrantino di Montefalco,,,,,match_status=accepted | High confidence automatic match | canonical_id=3
+2015,Villa Mongalli,Pozzo del Curato Sagrantino di Montefalco,,,,,match_status=accepted | High confidence automatic match | canonical_id=3
+2021,Bottega,Valpolicella Ripasso Superiore,,,,,match_status=accepted | High confidence automatic match | canonical_id=9
+2020,Pietro Clementi,Valpolicella Ripasso Classico Superiore,,,,,match_status=accepted | High confidence automatic match | canonical_id=21
+2020,Pietro Clementi,Valpolicella Ripasso Classico Superiore,,,,,"Helt okej ripasso, billig och bra! finns mycket godare viner | match_status=accepted | High confidence automatic match | canonical_id=21"
+2020,Pietro Clementi,Valpolicella Ripasso Classico Superiore,,,,,match_status=accepted | High confidence automatic match | canonical_id=21
+,Langlois,Crémant de Loire Cadence Extra Brut,,,,,Mycket gott bubbel | match_status=accepted | High confidence automatic match | canonical_id=25
+,Langlois,Crémant de Loire Cadence Extra Brut,,,,,match_status=accepted | High confidence automatic match | canonical_id=25
+2021,Bottega,Valpolicella Ripasso Superiore,,,,,"Mycket fylligt, russin eftersmak | match_status=accepted | High confidence automatic match | canonical_id=9"
+2021,Luigi Righetti,Capitel de Roari Amarone della Valpolicella Classico,,,,,match_status=accepted | High confidence automatic match | canonical_id=11
+2021,Bottega,Valpolicella Ripasso Superiore,,,,,"Vi  nr.8
+
+Mycket god ripasso, väldigt syrligt
+Mycket bra till aperitivo | match_status=accepted | High confidence automatic match | canonical_id=9"
+2021,Bottega,Valpolicella Ripasso Superiore,,,,,match_status=accepted | High confidence automatic match | canonical_id=9
+2020,Bertani,Catullo Valpolicella Ripasso Classico Superiore,,,,,"Vin nummer .4 
+
+Valp, Ripasso Tommasi 20
+Mycket trevlig, bästa ripasso hittils. Lite syrligare mellansmak! | match_status=accepted | High confidence automatic match | canonical_id=7"
+2020,Bertani,Catullo Valpolicella Ripasso Classico Superiore,,,,,match_status=accepted | High confidence automatic match | canonical_id=7
+2021,Luigi Righetti,Capitel de Roari Amarone della Valpolicella Classico,,,,,match_status=accepted | High confidence automatic match | canonical_id=11

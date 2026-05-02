@@ -1,11 +1,9 @@
-producer: Producer
-name: Name
+producer: Winery
+name: Wine name
 vintage: Vintage
+country: Country
 region: Region
-appellation: Appellation
-varietal: Varietal
-quantity: Quantity
-size: Bottle Size
-location: Location
-bin: Bin
-notes: Notes
+varietal: Regional wine style
+purchase_date: Scan date
+location: Scan/Review Location
+notes: Your review
