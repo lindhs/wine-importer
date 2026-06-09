@@ -23,6 +23,10 @@ documents = [
     "Pillow>=10.0",
     "pytesseract>=0.3",
 ]
+cellartracker = [
+    "requests>=2.31",
+    "beautifulsoup4>=4.12",
+]
 [project.scripts]
 wine-importer = "wine_importer.cli:app"
 [build-system]
