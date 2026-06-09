@@ -125,6 +125,14 @@ Detection uses both header evidence and data-value evidence:
 - value profiles such as year-like vintages, bottle sizes, quantities, countries, and dates
 - field evidence per column for later schema mapping
 
+The detector tolerates common spreadsheet messiness: headers preceded by title
+or preamble rows, blank rows before or inside the data region, merged header
+cells (spilled empty cells become `column_N` placeholders), vertically merged
+data cells (continuation rows keep their remaining values), and repeated header
+rows from pasted-together table chunks (compatible regions are combined). When
+no row clears the header-confidence floor, the file falls back to generic
+`column_N` names with a warning in the structure report rather than guessing.
+
 Plain text inputs are parsed line by line with deterministic vintage, quantity,
 size, location, and text-name patterns. PDF and OCR inputs are best-effort: if
 the optional dependency or system OCR tool is missing, the run writes a clear
