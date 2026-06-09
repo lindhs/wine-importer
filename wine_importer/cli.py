@@ -1,7 +1,22 @@
+import csv
+import json
+import webbrowser
+from dataclasses import asdict
 from pathlib import Path
 
 import typer
 
+from .cellartracker_lookup import (
+    DEFAULT_RESOLUTION_STORE,
+    WINE_URL_TEMPLATE,
+    CTParseError,
+    append_resolutions,
+    build_search_query,
+    build_search_url,
+    extract_iwine_ids,
+    load_resolution_store,
+    parse_wine_definition,
+)
 from .export import export_reviewed_matches
 from .io import read_json, write_json
 from .models import MatchResult, MappedWineRow, NormalizedWineRow
@@ -204,6 +219,146 @@ def export(
         export_rejected_as_unmatched=export_rejected_as_unmatched,
     )
     typer.echo(f"Exported CellarTracker file to {out}")
+
+
+@app.command("ct-urls")
+def ct_urls(
+    run_dir: str,
+    open_batch: int = typer.Option(
+        0,
+        "--open",
+        help="Open this many search URLs in the browser per batch (0 = just write the CSV).",
+    ),
+    include_accepted: bool = typer.Option(
+        False,
+        "--include-accepted",
+        help="Also generate URLs for rows already accepted in review.",
+    ),
+) -> None:
+    """Generate CellarTracker search URLs for unresolved rows (browser-assisted lookup)."""
+    run = Path(run_dir)
+    normalized_path = run / "05_normalized_rows.json"
+    if not normalized_path.exists():
+        raise typer.BadParameter(f"normalized rows artifact not found: {normalized_path}")
+    rows = [NormalizedWineRow(**row) for row in read_json(normalized_path)]
+
+    accepted_rows: set[int] = set()
+    reviewed_path = run / "07_reviewed_matches.json"
+    if reviewed_path.exists() and not include_accepted:
+        for record in read_json(reviewed_path):
+            if record.get("status") == "accepted":
+                accepted_rows.add(record.get("row_number"))
+
+    entries: list[dict[str, str]] = []
+    for row in rows:
+        if row.row_number in accepted_rows:
+            continue
+        query = build_search_query(row)
+        if not query:
+            continue
+        entries.append(
+            {
+                "row_number": str(row.row_number),
+                "producer": row.producer or "",
+                "name": row.name or "",
+                "vintage": row.vintage or "",
+                "query": query,
+                "url": build_search_url(query),
+            }
+        )
+
+    out_path = run / "06a_lookup_urls.csv"
+    with out_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(
+            handle, fieldnames=["row_number", "producer", "name", "vintage", "query", "url"]
+        )
+        writer.writeheader()
+        writer.writerows(entries)
+    typer.echo(f"Wrote {len(entries)} search URLs to {out_path}")
+
+    if open_batch > 0 and entries:
+        for start in range(0, len(entries), open_batch):
+            batch = entries[start : start + open_batch]
+            for entry in batch:
+                webbrowser.open(entry["url"])
+            opened = start + len(batch)
+            if opened < len(entries):
+                typer.confirm(
+                    f"Opened {opened} of {len(entries)} searches. Continue with the next {open_batch}?",
+                    abort=True,
+                )
+    typer.echo(
+        f"Save wine pages (HTML only) into {run / 'ct_inbox'} and then run: "
+        f"wine-importer ct-ingest {run_dir}"
+    )
+
+
+@app.command("ct-ingest")
+def ct_ingest(
+    run_dir: str,
+    inbox: str | None = typer.Option(
+        None,
+        "--inbox",
+        help="Directory of saved CellarTracker wine pages (default <run_dir>/ct_inbox).",
+    ),
+    store: str | None = typer.Option(
+        None,
+        "--store",
+        help="Resolution store path (default ~/.wine-importer/resolutions.json).",
+    ),
+) -> None:
+    """Parse saved CellarTracker wine pages and record the resolved identities."""
+    run = Path(run_dir)
+    inbox_dir = Path(inbox) if inbox else run / "ct_inbox"
+    if not inbox_dir.exists():
+        raise typer.BadParameter(f"inbox directory not found: {inbox_dir}")
+
+    results: list[dict] = []
+    definitions = []
+    for html_path in sorted(inbox_dir.glob("*.htm*")):
+        text = html_path.read_text(encoding="utf-8", errors="replace")
+        try:
+            definition = parse_wine_definition(text)
+        except CTParseError as error:
+            results.append({"file": html_path.name, "status": "error", "error": str(error)})
+            continue
+        definitions.append(definition)
+        results.append(
+            {"file": html_path.name, "status": "parsed", "definition": asdict(definition)}
+        )
+
+    out_path = run / "06a_resolutions.json"
+    write_json(results, out_path)
+    store_path = Path(store) if store else DEFAULT_RESOLUTION_STORE
+    added = append_resolutions(definitions, store_path)
+
+    error_count = len(results) - len(definitions)
+    typer.echo(f"Parsed {len(definitions)} wine pages ({error_count} errors) -> {out_path}")
+    typer.echo(
+        f"Resolution store: {store_path} "
+        f"(+{added} new, {len(load_resolution_store(store_path))} total)"
+    )
+
+
+@app.command("ct-lookup")
+def ct_lookup(target: str) -> None:
+    """Print the CellarTracker search URL for free text, or parse a saved HTML file."""
+    path = Path(target)
+    if not path.exists():
+        typer.echo(build_search_url(target))
+        return
+    text = path.read_text(encoding="utf-8", errors="replace")
+    try:
+        definition = parse_wine_definition(text)
+    except CTParseError:
+        ids = extract_iwine_ids(text)
+        if not ids:
+            raise typer.BadParameter(f"no CellarTracker wine ids found in {path}")
+        typer.echo(f"Found {len(ids)} wine ids (search results page?):")
+        for iwine in ids:
+            typer.echo(f"  {iwine}  {WINE_URL_TEMPLATE.format(iwine=iwine)}")
+        return
+    typer.echo(json.dumps(asdict(definition), indent=2, ensure_ascii=False))
 
 
 @app.command()

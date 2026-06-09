@@ -94,55 +94,49 @@ The remaining work is hardening, not building:
 
 ---
 
-## Phase 3 — CellarTracker lookup adapter
+## Phase 3 — Browser-assisted CellarTracker resolution (revised 2026-06-10)
 
-This is the centerpiece. A new module, `wine_importer/cellartracker_lookup.py`, that resolves a normalized wine row to candidate `iWine` IDs by text search and Wine Definition scraping. It is deliberately isolated: nothing else in the codebase knows about HTML, and all CellarTracker fragility lives behind one interface.
+**Correction from verification:** the original plan specced polite `requests`-based scraping. CellarTracker blocks non-browser clients at the CloudFront edge — even `robots.txt` returns 403 to plain curl. Getting through would mean impersonating a browser to defeat an intentional technical barrier; that path is rejected. The sanctioned routes are: the user's own browser, the documented `xlquery.asp` own-data export, and a partner API granted on request (see `docs/cellartracker_api_request.md`).
+
+The revised transport: **the tool builds search URLs, the user's real browser does all fetching**, the user saves wine pages locally, and the tool parses the saved files. Zero automated requests to CellarTracker, no credentials, no ToS exposure. All page-structure knowledge still lives in one module (`wine_importer/cellartracker_lookup.py`), so a sanctioned API client can replace the browser step later without touching the parsers.
 
 ### Module design
 
 ```python
 @dataclass(frozen=True)
-class CTWineDefinition:
-    ct_wine_id: str
-    display_name: str
-    vintage: str | None
-    type: str | None
-    producer: str | None
-    varietal: str | None
-    designation: str | None
-    vineyard: str | None
-    country: str | None
-    region: str | None
-    subregion: str | None
-    appellation: str | None
-    url: str
+class CTWineDefinition: ...           # ct_wine_id, display_name, vintage, type,
+                                      # producer, varietal, designation, vineyard,
+                                      # country, region, subregion, appellation, url
 
 def build_search_query(row: NormalizedWineRow) -> str: ...
-def fetch_search_results(query: str, session: requests.Session) -> str: ...
+def build_search_url(query: str) -> str: ...
 def extract_iwine_ids(search_html: str) -> list[str]: ...
-def fetch_wine_definition(iwine_id: str, session: requests.Session) -> CTWineDefinition: ...
-def lookup_candidates(row: NormalizedWineRow, *, max_candidates: int = 10,
-                      cache: ResolutionCache | None = None) -> list[CTWineDefinition]: ...
+def parse_wine_definition(wine_html: str) -> CTWineDefinition: ...   # raises CTParseError
 def to_canonical_wine(defn: CTWineDefinition) -> CanonicalWine: ...
+def load_resolution_store(path) / append_resolutions(defs, path): ...  # JSON store,
+                                      # formalized into the SQLite cache in Phase 4
 ```
 
-`build_search_query` concatenates `{vintage} {producer} {name} {varietal} {appellation}`, skipping empty fields, using the normalized values. `extract_iwine_ids` parses `wine.asp?iWine=(\d+)` links from search-result HTML. `fetch_wine_definition` parses the wine-page detail block into the dataclass — this is the single function that knows CellarTracker's page structure, so when their HTML changes, one function and its fixtures change. `to_canonical_wine` converts a definition into a `CanonicalWine` with `id="ct:{iWine}"` and `source="cellartracker_html"`, which means the existing scorer works on CT candidates with zero modification.
+No HTTP code anywhere in the module. `to_canonical_wine` produces `id="ct:{iWine}"`, `source="cellartracker_html"`, so the existing scorer works on CT candidates unchanged.
 
-### Operational discipline
+### Workflow (CLI)
 
-The adapter must be a polite client. Use a shared `requests.Session` with a descriptive User-Agent, a configurable delay between requests (default ~1–2 seconds), retry with exponential backoff on transient errors, and a hard cap on definitions fetched per row (default 10). Every network failure degrades gracefully: log, return what was gathered, never crash the pipeline. Authentication tokens (the `CK=` session key seen in RSS URLs) must never be committed, logged, or required — the public search path works without them. Before relying on scraping at volume, review CellarTracker's terms of service; the design should keep the door open to swapping the scraper for an official API or export-based ingestion if one becomes available, which is another reason all CT knowledge sits behind this one module.
+- `wine-importer ct-urls <run_dir>` — reads `05_normalized_rows.json` (skipping rows already accepted in `07_reviewed_matches.json`), writes `06a_lookup_urls.csv`; `--open N` opens N browser tabs per batch with a confirm prompt between batches.
+- The user saves wine pages ("HTML Only") into `<run_dir>/ct_inbox/`.
+- `wine-importer ct-ingest <run_dir>` — parses the inbox, writes `06a_resolutions.json` (parsed definitions and per-file parse errors), appends confirmed identities to the persistent store at `~/.wine-importer/resolutions.json`.
+- `wine-importer ct-lookup "<text or saved file>"` — debug helper.
 
 ### Testing
 
-No live network calls in tests. Save real search-result and wine-page HTML as fixtures under `tests/fixtures/cellartracker/`, and test `extract_iwine_ids` and `fetch_wine_definition` against them. Use `responses` or monkeypatched sessions for the orchestration tests.
+No live network calls in tests, ever. Fixtures live under `tests/fixtures/cellartracker/`; they start synthetic and are replaced with real saved pages per the checklist in that directory's README (captured logged-out, scrubbed of any session data before commit).
 
-**Deliverables:** the module, fixture-based tests, a `wine-importer ct-lookup "<query>"` debug CLI command that prints candidates for a free-text query.
+**Deliverables (shipped):** the module, fixture-based parser tests, the three CLI commands with tests, the API request email draft.
 
 ---
 
 ## Phase 4 — Resolution cache
 
-Repeated runs must not re-scrape wines already resolved. Add `wine_importer/resolution_cache.py` backed by SQLite (preferred over JSON: concurrent-safe, queryable, scales past a few thousand wines):
+Repeated runs must not re-resolve wines already confirmed. Phase 3's JSON store (`~/.wine-importer/resolutions.json`) migrates into `wine_importer/resolution_cache.py` backed by SQLite (concurrent-safe, queryable, scales past a few thousand wines). **Per the 2026-06-10 decision there is no local canonical list** — this cache *is* the canonical layer, populated exclusively from browser-confirmed resolutions:
 
 ```sql
 CREATE TABLE resolutions (
@@ -160,13 +154,11 @@ CREATE TABLE wine_definitions (
 );
 ```
 
-The signature is built from normalized fields so that "Ch. Talbot / 1989" and "Château Talbot / 1989" hash identically after normalization. Negative results are cached too (with a shorter TTL) so unmatched wines don't trigger a search on every run. The cache file lives at a configurable path (default `~/.wine-importer/ct_cache.db`), is git-ignored, and a `wine-importer cache stats|clear` subcommand exposes it.
+The signature is built from normalized fields so that "Ch. Talbot / 1989" and "Château Talbot / 1989" hash identically after normalization. Negative results ("searched in browser, confirmed not on CT") are cached too so unmatched wines don't reappear in every `ct-urls` batch. The cache file lives at a configurable path (default `~/.wine-importer/ct_cache.db`), is git-ignored, and a `wine-importer cache stats|clear` subcommand exposes it.
 
 **Added from review:** while restructuring candidate sourcing, fix the in-memory search-index cache in `search.py` — `_SEARCH_CACHE` is keyed on `id(canonical_wines)` (`search.py:334`), which can silently serve stale data when a garbage-collected object's id is reused. Replace the key with a content hash of the canonical records.
 
-Over time this cache *becomes* a growing local canonical mirror — the original local-CSV concept, but populated automatically from confirmed resolutions instead of curated by hand.
-
-**Deliverables:** cache module with TTL handling and negative caching, cache CLI subcommands, integration into `lookup_candidates`, content-hash fix for `_SEARCH_CACHE`.
+**Deliverables:** cache module with TTL handling and negative caching, migration from the Phase 3 JSON store, cache CLI subcommands, content-hash fix for `_SEARCH_CACHE`.
 
 ---
 
@@ -186,28 +178,30 @@ Introduce a second threshold profile. Import matching keeps the current `accept=
 
 Wire the lookup into the staged pipeline as a proper stage rather than a side path, preserving the artifact-per-stage paradigm.
 
-The new flow inserts a resolution stage between normalization and scoring:
+The new flow inserts a resolution stage between normalization and scoring. **Per the 2026-06-10 decision the local canonical CSV is removed entirely** — the resolution cache is the only candidate source, and the existing token-index search (`wine_importer/search.py`) is repointed at cache contents:
 
 ```
 05_normalized_rows.json
         ↓
 Stage 6a: canonical resolution
-   per row: cache hit? → use cached candidates
-            else local canonical candidates (existing token-index search)
-            else (--use-ct-lookup) CellarTracker search → definitions → cache
+   per row: cache hit (signature or token-index fuzzy match over cached
+            CanonicalWines)? → use cached candidates
+            else → row lands in 06a_lookup_urls.csv for the
+            browser-assisted ct-urls / ct-ingest loop
         ↓
-06a_resolution.json        (per-row: source used, query sent, ids found, cache hits)
+06a_resolution.json        (per-row: cache / browser-confirmed / unresolved,
+                            query, candidate ids)
         ↓
 Stage 6b: score candidates  (existing rank_candidates, unchanged interface)
         ↓
-06_candidate_matches.json   (candidates now carry ct_wine_id when resolved via CT)
+06_candidate_matches.json   (candidates carry ct_wine_id)
 ```
 
-CLI surface: `--use-ct-lookup` enables the network path, `--ct-cache PATH` overrides the cache location, `--canonical` becomes optional when `--use-ct-lookup` is set (local CSV degrades from required reference to optional seed). The deterministic offline pipeline remains the default — no flag, no network, byte-identical behavior to today, which the Phase 0 golden test enforces.
+CLI surface: `--canonical` is deleted; `--ct-cache PATH` overrides the cache location. The pipeline stays fully offline — unresolved rows flow to review as `rejected`/`review_needed` with a pointer to the lookup CSV, and a re-run after `ct-ingest` picks up the newly cached identities. The Phase 0 golden test is updated in the same commit (the reference run changes when `--canonical` goes away, and the new counts are pinned with the rationale in the commit message).
 
-`06a_resolution.json` is the new audit artifact: for every row it records which source resolved it (cache / local / cellartracker / none), the search query issued, candidate ids returned, and timing. The run manifest gains resolution counts (cache hits, live lookups, not-found).
+`06a_resolution.json` is the audit artifact: for every row it records which source resolved it (cache / browser-confirmed / none) and the search query. The run manifest gains resolution counts (cache hits, newly ingested, unresolved).
 
-**Deliverables:** resolution stage, new artifact, CLI flags, manifest extensions, updated mermaid flowchart in WORKFLOW.md, integration tests with mocked lookup.
+**Deliverables:** resolution stage, new artifact, `--canonical` removal with golden-test update, manifest extensions, updated mermaid flowchart in WORKFLOW.md, integration tests with a pre-seeded cache.
 
 ---
 
@@ -236,7 +230,7 @@ Finally, update the project's self-description: this is no longer "a CSV cleaner
 | 0 — Baseline | — | low | half a day |
 | 1 — Models | 0 | low | half a day |
 | 2 — Table detection audit | 0 | low (exists; audit only) | half a day |
-| 3 — CT lookup adapter | 1 | **high** (external HTML) | 2 days |
+| 3 — CT resolution (browser-assisted) | 1 | medium (HTML drift; no network/ToS risk) | 1–2 days |
 | 4 — Resolution cache | 3 | low | 1 day |
 | 5 — Scorer enrichment | 1 | medium | 1 day |
 | 6 — Pipeline integration | 3, 4, 5 | medium | 1–2 days |

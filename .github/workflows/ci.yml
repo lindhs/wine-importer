@@ -17,6 +17,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install package with dev extras
-        run: pip install -e ".[dev]"
+        run: pip install -e ".[dev,cellartracker]"
       - name: Run tests
         run: pytest -q
