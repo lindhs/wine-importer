@@ -89,7 +89,6 @@ def normalize_mapped_rows(rows: list[MappedWineRow]) -> list[NormalizedWineRow]:
             varietal=row.varietal,
             quantity=row.quantity,
             size=row.size,
-            bottle_size=row.bottle_size,
             purchase_date=row.purchase_date,
             location=row.location,
             bin=row.bin,
@@ -106,7 +105,6 @@ def normalize_mapped_rows(rows: list[MappedWineRow]) -> list[NormalizedWineRow]:
             normalized_appellation=normalize_text(row.appellation),
             normalized_varietal=normalize_text(row.varietal),
             normalized_size=normalize_size(row.size),
-            normalized_bottle_size=normalize_size(row.bottle_size),
         )
         normalized_rows.append(normalized_row)
     return normalized_rows

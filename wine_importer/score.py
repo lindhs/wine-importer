@@ -142,6 +142,7 @@ def rank_candidates(
             CandidateMatch(
                 row_number=normalized_row.row_number,
                 canonical_id=canonical.id,
+                ct_wine_id=canonical.ct_wine_id,
                 producer=canonical.producer,
                 name=canonical.name,
                 vintage=canonical.vintage,

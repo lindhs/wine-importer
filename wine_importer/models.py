@@ -28,7 +28,6 @@ class MappedWineRow(BaseModel):
     varietal: str | None = None
     quantity: float | None = None
     size: str | None = None
-    bottle_size: str | None = None
     purchase_date: str | None = None
     location: str | None = None
     bin: str | None = None
@@ -48,26 +47,32 @@ class NormalizedWineRow(MappedWineRow):
     normalized_appellation: str | None = None
     normalized_varietal: str | None = None
     normalized_size: str | None = None
-    normalized_bottle_size: str | None = None
 
 
 class CanonicalWine(BaseModel):
-    id: str
+    id: str  # local id OR "ct:{iWine}"
+    ct_wine_id: str | None = None  # CellarTracker iWine when known
     producer: str
     name: str
     vintage: str
+    type: str | None = None  # Red / White / Rosé / Sparkling...
+    designation: str | None = None
+    vineyard: str | None = None
     country: str | None = None
-    region: str
-    appellation: str
-    varietal: str
+    region: str = ""
+    subregion: str | None = None
+    appellation: str = ""
+    varietal: str = ""
     quantity: int | None = None
     size: str | None = None
     notes: str | None = None
+    source: str = "local_csv"  # local_csv | cellartracker_html | cache
 
 
 class CandidateMatch(BaseModel):
     row_number: int
     canonical_id: str | None = None
+    ct_wine_id: str | None = None
     producer: str | None = None
     name: str | None = None
     vintage: str | None = None

@@ -67,7 +67,6 @@ def _user_export_row(record: dict, user_row: dict) -> dict[str, str]:
         "Quantity": _format_quantity(user_row.get("quantity") if "quantity" in user_row else user_row.get("Quantity")),
         "BottleSize": _first_non_empty(
             user_row.get("size"),
-            user_row.get("bottle_size"),
             user_row.get("BottleSize"),
             user_row.get("Bottle Size"),
         ),
@@ -86,7 +85,6 @@ def _matched_export_row(record: dict, user_row: dict, best_match: dict) -> dict[
         "Quantity": _format_quantity(user_row.get("quantity") if "quantity" in user_row else user_row.get("Quantity")),
         "BottleSize": _first_non_empty(
             user_row.get("size"),
-            user_row.get("bottle_size"),
             user_row.get("BottleSize"),
             user_row.get("Bottle Size"),
         ),

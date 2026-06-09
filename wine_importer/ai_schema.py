@@ -26,7 +26,6 @@ WINE_FIELDS = [
     "varietal",
     "quantity",
     "size",
-    "bottle_size",
     "purchase_date",
     "location",
     "bin",

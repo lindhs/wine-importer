@@ -59,7 +59,7 @@ VARIETAL_TOKENS = {
     "shiraz",
     "zinfandel",
 }
-CORE_FIELDS = {"producer", "name", "vintage", "quantity", "size", "bottle_size"}
+CORE_FIELDS = {"producer", "name", "vintage", "quantity", "size"}
 SUPPORT_FIELDS = {"country", "region", "subregion", "appellation", "varietal"}
 
 
@@ -834,7 +834,7 @@ def _row_wine_score(
             continue
         field = _field_for_row_value(header, value, field_evidence)
         if field in CORE_FIELDS:
-            core_fields.add("size" if field == "bottle_size" else field)
+            core_fields.add(field)
         elif field in SUPPORT_FIELDS:
             support_fields.add(field)
 
@@ -872,7 +872,7 @@ def _value_supports_field(value: str, field: str | None) -> bool:
         return _looks_like_identity_text(value)
     if field == "vintage":
         return _looks_like_vintage(value)
-    if field in {"size", "bottle_size"}:
+    if field == "size":
         return _looks_like_size(value)
     if field == "quantity":
         return _looks_like_quantity(value)
