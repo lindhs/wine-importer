@@ -1,6 +1,8 @@
 # wine-importer
 
-`wine-importer` is a local-first CLI pipeline for importing messy wine inventories into a cleaned, CellarTracker-ready CSV.
+`wine-importer` is a local-first master-data resolution system for wine inventories. It takes messy spreadsheets and resolves each row to a stable CellarTracker identity (`iWine` ID), with CellarTracker as the reference layer, a growing local cache as the mirror, probabilistic entity resolution in the middle, and a human arbitrating the uncertain cases. The output is a cleaned, CellarTracker-ready CSV whose accepted rows carry their resolved identity as provenance.
+
+Because CellarTracker blocks automated clients, resolution is **browser-assisted**: the tool builds search URLs, you save the right wine pages, and it parses them into a local SQLite cache. Confirmed resolutions accumulate in the cache — that cache *is* the canonical layer (there is no hand-curated canonical CSV), and it makes each subsequent run faster as more wines become exact hits.
 
 ## Features
 
@@ -9,9 +11,10 @@
 - Infer schema mappings from headers and column-value profiles
 - Quarantine uncertain rows, skipped regions, and unsupported documents for review
 - Normalize wine metadata with deterministic rules
-- Perform canonical wine search and fuzzy scoring using RapidFuzz
+- Resolve rows against the CellarTracker-backed resolution cache with fuzzy scoring (RapidFuzz)
+- Browser-assisted CellarTracker lookup for unresolved rows (`ct-urls` → save pages → `ct-ingest`)
 - Review matches automatically with review-needed thresholds
-- Export a CellarTracker-ready CSV conservatively from accepted matches
+- Export a CellarTracker-ready CSV with `ct_wine_id`/`ct_url` provenance from accepted matches
 - Keep each stage as a reusable, independent pipeline step
 
 ## Requirements

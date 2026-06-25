@@ -38,3 +38,9 @@ include = ["wine_importer"]
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+
+[tool.pytest.ini_options]
+addopts = "-m 'not network'"
+markers = [
+    "network: live network test (CellarTracker canary); excluded by default, run with -m network",
+]

@@ -6,7 +6,7 @@ Evolve wine-importer from a self-referential canonicalization pipeline (matching
 
 The rebuild is organized into eight phases. Each phase is independently shippable, keeps the test suite green, and leaves the pipeline runnable end to end. Phases are ordered so that the riskiest external dependency (CellarTracker scraping) lands only after the internal foundations are solid.
 
-> **Status note (2026-06-09):** baseline verified against the current codebase — 46 tests passing. Table detection (Phase 2) already exists in `table_detect.py` and is wired into ingestion; that phase is an audit/extend pass, not a build. See per-phase notes.
+> **Status note (2026-06-25):** all eight phases shipped — 96 tests passing (+1 network canary, deselected by default). The pipeline is now cache-backed with `--canonical` removed; the resolution cache is the sole candidate source, grown from browser-confirmed CellarTracker resolutions. Two follow-ups remain, both gated on the user capturing **real** CellarTracker pages (current fixtures are synthetic): validating `parse_wine_definition` against real HTML, and Phase 7's deferred `UserWine3–8` population (needs confirmed import-column semantics).
 
 ---
 
@@ -221,6 +221,8 @@ The export's job changes subtly: accepted rows resolved via CellarTracker now ca
 Close the loop on operational quality. Add a recorded-fixture end-to-end test: a small input file, mocked CT responses, full pipeline run, assertions on every artifact including the cache state. Add scraper canary tests marked `@pytest.mark.network` (excluded by default, runnable manually) that hit one known wine page and fail loudly if CellarTracker's HTML structure has drifted. Document the new architecture in WORKFLOW.md: updated flowchart, the resolution stage, cache behavior, threshold policies, and a troubleshooting section for lookup failures.
 
 Finally, update the project's self-description: this is no longer "a CSV cleaner" — it's a local-first master-data resolution system for wine inventories, with CellarTracker as the reference layer, a growing local cache as the mirror, probabilistic entity resolution in the middle, and a human arbitrating uncertainty at the end.
+
+**Deliverables (shipped):** the README self-description is rewritten along those lines; a `network`-marked canary (`tests/test_network_canary.py`) is registered and excluded by default (`-m 'not network'` in `pyproject.toml`). Adapted to the browser-assisted reality: the canary **skips** when CellarTracker blocks the request (the normal case — drift detection is re-capturing fixtures, see `tests/fixtures/cellartracker/README.md`) and only asserts the parser against live HTML if a page ever returns 200. The recorded-fixture end-to-end coverage is already provided by the Phase 6 resolution/write-back tests and the golden run.
 
 ---
 
