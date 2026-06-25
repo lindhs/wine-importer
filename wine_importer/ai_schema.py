@@ -120,6 +120,16 @@ def score_candidate_with_ai(
     canonical_region: str,
     fuzzy_score: float,
     api_key: str | None = None,
+    *,
+    user_appellation: str | None = None,
+    user_varietal: str | None = None,
+    user_vineyard: str | None = None,
+    user_country: str | None = None,
+    canonical_appellation: str | None = None,
+    canonical_varietal: str | None = None,
+    canonical_vineyard: str | None = None,
+    canonical_designation: str | None = None,
+    canonical_country: str | None = None,
 ) -> float:
     """
     Use OpenAI to semantically verify wine matches in ambiguous cases.
@@ -146,19 +156,40 @@ def score_candidate_with_ai(
     if not is_ai_scoring_candidate(fuzzy_score):
         return fuzzy_score
 
+    def _extra_lines(pairs: list[tuple[str, str | None]]) -> str:
+        return "".join(f"\n  {label}: {value}" for label, value in pairs if value)
+
+    user_extra = _extra_lines(
+        [
+            ("Appellation", user_appellation),
+            ("Varietal", user_varietal),
+            ("Vineyard", user_vineyard),
+            ("Country", user_country),
+        ]
+    )
+    canonical_extra = _extra_lines(
+        [
+            ("Appellation", canonical_appellation),
+            ("Varietal", canonical_varietal),
+            ("Vineyard", canonical_vineyard),
+            ("Designation", canonical_designation),
+            ("Country", canonical_country),
+        ]
+    )
+
     prompt = f"""Are these the same wine? Respond with confidence 0-1.
 
 User input:
   Producer: {user_producer or 'unknown'}
   Name: {user_name or 'unknown'}
   Vintage: {user_vintage or 'unknown'}
-  Region: {user_region or 'unknown'}
+  Region: {user_region or 'unknown'}{user_extra}
 
 Canonical reference:
   Producer: {canonical_producer}
   Name: {canonical_name}
   Vintage: {canonical_vintage}
-  Region: {canonical_region}
+  Region: {canonical_region}{canonical_extra}
 
 Respond ONLY with JSON: {{"confidence": 0.95}}
 
@@ -166,6 +197,7 @@ Consider:
 - Producer/name typos and abbreviations
 - Regional synonyms (e.g., Bordeaux = Gironde)
 - Vintage variations (e.g., NV vs specific year)
+- Vineyard and designation distinctions between otherwise-identical wines
 - Name variations (e.g., "Grand Vin" suffix)"""
 
     try:

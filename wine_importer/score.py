@@ -32,6 +32,31 @@ def _score_component(value_a: str | None, value_b: str | None) -> float:
     return fuzz.token_sort_ratio(value_a, value_b) / 100.0
 
 
+def _tiebreaker_delta(
+    value_a: str | None,
+    value_b: str | None,
+    *,
+    bonus: float,
+    penalty: float,
+    label: str,
+    hard_conflicts: list[str],
+) -> float:
+    # Fine-grained CellarTracker fields (vineyard, subregion) act only as
+    # tiebreakers: they nudge the score when BOTH sides carry them, and do
+    # nothing otherwise. This keeps local-CSV scoring (where the canonical
+    # lacks these columns) byte-identical while letting two otherwise-equal
+    # Barolos be split by vineyard.
+    if not (normalize_text(value_a) and normalize_text(value_b)):
+        return 0.0
+    score = _score_component(value_a, value_b)
+    if score >= 0.85:
+        return bonus
+    if score <= 0.4:
+        hard_conflicts.append(label)
+        return -penalty
+    return 0.0
+
+
 def score_candidate_breakdown(
     normalized_row: NormalizedWineRow,
     canonical: CanonicalWine,
@@ -83,6 +108,23 @@ def score_candidate_breakdown(
         total -= 0.5
         hard_conflicts.append("vintage")
 
+    total += _tiebreaker_delta(
+        normalized_row.normalized_vineyard or normalized_row.vineyard,
+        canonical.vineyard,
+        bonus=0.05,
+        penalty=0.10,
+        label="vineyard",
+        hard_conflicts=hard_conflicts,
+    )
+    total += _tiebreaker_delta(
+        normalized_row.normalized_subregion or normalized_row.subregion,
+        canonical.subregion,
+        bonus=0.03,
+        penalty=0.06,
+        label="subregion",
+        hard_conflicts=hard_conflicts,
+    )
+
     if producer_score < 0.2 and name_score < 0.3:
         total = 0.0
 
@@ -129,6 +171,15 @@ def rank_candidates(
                     canonical.vintage,
                     canonical.region,
                     score,
+                    user_appellation=normalized_row.appellation,
+                    user_varietal=normalized_row.varietal,
+                    user_vineyard=normalized_row.vineyard,
+                    user_country=normalized_row.country,
+                    canonical_appellation=canonical.appellation,
+                    canonical_varietal=canonical.varietal,
+                    canonical_vineyard=canonical.vineyard,
+                    canonical_designation=canonical.designation,
+                    canonical_country=canonical.country,
                 )
                 logger.debug(
                     f"Row {normalized_row.row_number}: AI enhanced score for "

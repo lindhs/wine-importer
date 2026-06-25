@@ -171,7 +171,7 @@ Extend `rank_candidates` / the field-weight table in `score.py` to also compare 
 
 Introduce a second threshold profile. Import matching keeps the current `accept=0.70 / review=0.55`. Existence lookup ("does this exact wine already exist in CT?") is a stricter question and gets `accept=0.85 / review=0.65`. Put both in `config.py` as named `ScoringPolicy` instances and record the active policy in the run manifest (which already tracks thresholds via `scoring_policy_manifest()`).
 
-**Deliverables:** enriched deterministic scorer with tests for the new conflict penalties, enriched AI prompt, dual threshold policies in config and manifest.
+**Deliverables (shipped):** deterministic scorer gains `vineyard` and `subregion` tiebreakers (bonus on match, penalty + hard-conflict on mismatch) gated on both-sides-present, so local-CSV scoring and the golden run are byte-identical; `score_candidate_with_ai` now passes appellation/varietal/vineyard/country (and canonical designation) into the prompt; `config.py` adds the named `EXISTENCE_LOOKUP_POLICY` (0.85/0.65) alongside `import` (0.70/0.55), `classify_review_score`/`is_ai_scoring_candidate`/`scoring_policy_manifest` are policy-parameterized, and the manifest records `policy_name`. (Designation has no input-row field, so it's AI-prompt-only deterministically — `name_score` already captures it.)
 
 ---
 
