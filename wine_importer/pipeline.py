@@ -1,3 +1,4 @@
+import csv
 import logging
 from pathlib import Path
 
@@ -6,6 +7,7 @@ from rich.console import Console
 from .config import (
     scoring_policy_manifest,
 )
+from .cellartracker_lookup import build_search_query, build_search_url
 from .export import export_reviewed_matches
 from .ai_runtime import load_project_env
 from .ingest import quarantine_to_dataframe
@@ -16,10 +18,11 @@ from .parse import (
     read_ingested_input_file,
 )
 from .report import export_review_report
+from .resolution_cache import DEFAULT_CACHE_PATH, ResolutionCache
 from .review import review_matches
 from .score import rank_candidates
 from .schema_map import apply_schema_mapping, save_schema_mapping
-from .search import find_candidate_records_with_diagnostics, load_canonical_wines
+from .search import find_candidate_records_with_diagnostics
 from .normalize import normalize_mapped_rows
 from .validation import (
     configure_logging,
@@ -28,7 +31,6 @@ from .validation import (
     log_pipeline_start,
     log_stage_complete,
     log_stage_start,
-    validate_canonical_file,
     validate_input_file,
     validate_schema_mapping,
 )
@@ -86,8 +88,8 @@ def _assess_input_quality(raw_rows) -> dict:
 
 def run_pipeline(
     input_path: str,
-    canonical_path: str,
     out_dir: str,
+    ct_cache: str | None = None,
     delimiter: str | None = None,
     sheet_name: str | None = None,
     use_ai: bool = False,
@@ -102,8 +104,9 @@ def run_pipeline(
 
     Args:
         input_path: Path to input wine data file
-        canonical_path: Path to canonical reference CSV
         out_dir: Output directory for artifacts
+        ct_cache: Path to the CellarTracker resolution cache (the candidate
+            source). Defaults to ~/.wine-importer/ct_cache.db.
         delimiter: Optional delimiter for CSV parsing
         sheet_name: Optional Excel sheet name
         use_ai: Enable AI-powered schema mapping and semantic scoring
@@ -112,7 +115,7 @@ def run_pipeline(
         Dict mapping artifact names to file paths
 
     Raises:
-        FileNotFoundError: Input or canonical files don't exist
+        FileNotFoundError: Input file doesn't exist
         ValueError: Invalid data or schema
     """
     # Initialize logging
@@ -120,12 +123,12 @@ def run_pipeline(
     if use_ai:
         load_project_env()
 
-    log_pipeline_start(input_path, canonical_path, out_dir)
+    cache_path = Path(ct_cache) if ct_cache else DEFAULT_CACHE_PATH
+    log_pipeline_start(input_path, out_dir, str(cache_path))
 
     # Stage 0: Validation
     try:
         validate_input_file(input_path)
-        validate_canonical_file(canonical_path)
     except (FileNotFoundError, ValueError) as e:
         logger.error(f"Validation failed: {e}")
         console.print(f"[red bold]✗ Error: {e}[/red bold]")
@@ -143,6 +146,8 @@ def run_pipeline(
     mapping_path = out_dir_path / "03_mapping.yaml"
     mapped_path = out_dir_path / "04_mapped_rows.json"
     normalized_path = out_dir_path / "05_normalized_rows.json"
+    resolution_path = out_dir_path / "06a_resolution.json"
+    lookup_urls_path = out_dir_path / "06a_lookup_urls.csv"
     candidates_path = out_dir_path / "06_candidate_matches.json"
     reviewed_path = out_dir_path / "07_reviewed_matches.json"
     output_path = out_dir_path / "08_cellartracker_import.csv"
@@ -269,13 +274,16 @@ def run_pipeline(
         console.print(f"[red bold]✗ Stage 5 failed: {e}[/red bold]")
         raise
 
-    # Stage 6: Find candidates and score
+    # Stage 6: Resolve candidates from the cache, then score
     try:
-        log_stage_start(6, "Find candidates and score")
-        canonical_wines = load_canonical_wines(canonical_path)
-        logger.info(f"Loaded {len(canonical_wines)} canonical wines")
+        log_stage_start(6, "Resolve candidates and score")
+        with ResolutionCache(cache_path) as cache:
+            canonical_wines = cache.all_canonical()
+        logger.info(f"Loaded {len(canonical_wines)} cached wines from {cache_path}")
 
         match_results: list[MatchResult] = []
+        resolution_records: list[dict] = []
+        unresolved_rows: list[dict] = []
         for idx, row in enumerate(normalized_rows, 1):
             if idx % max(1, len(normalized_rows) // 10) == 0:
                 logger.debug(f"Processing row {idx}/{len(normalized_rows)}")
@@ -302,8 +310,43 @@ def run_pipeline(
                 )
             )
 
+            query = build_search_query(row)
+            resolution_records.append(
+                {
+                    "row_number": row.row_number,
+                    "source": "cache" if ranked else "unresolved",
+                    "query": query,
+                    "num_candidates": len(ranked),
+                    "top_score": ranked[0].score if ranked else None,
+                }
+            )
+            if not ranked and query:
+                unresolved_rows.append(
+                    {
+                        "row_number": str(row.row_number),
+                        "producer": row.producer or "",
+                        "name": row.name or "",
+                        "vintage": row.vintage or "",
+                        "query": query,
+                        "url": build_search_url(query),
+                    }
+                )
+
         write_json(_serialize_models(match_results), candidates_path)
+        write_json(resolution_records, resolution_path)
+        with lookup_urls_path.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(
+                handle,
+                fieldnames=["row_number", "producer", "name", "vintage", "query", "url"],
+            )
+            writer.writeheader()
+            writer.writerows(unresolved_rows)
         console.print(f"Saved candidate matches to [green]{candidates_path}[/green]")
+        if unresolved_rows:
+            console.print(
+                f"[yellow]{len(unresolved_rows)} rows unresolved → "
+                f"{lookup_urls_path} (resolve via ct-ingest, then re-run)[/yellow]"
+            )
         log_stage_complete(6, len(match_results))
     except Exception as e:
         logger.error(f"Stage 6 failed: {e}")
@@ -334,6 +377,27 @@ def run_pipeline(
                 )
         write_json(_serialize_models(reviewed), reviewed_path)
         console.print(f"Saved reviewed matches to [green]{reviewed_path}[/green]")
+
+        # Flywheel: teach the cache which signature resolved to which iWine,
+        # so the next run is an exact hit instead of a fresh search.
+        try:
+            with ResolutionCache(cache_path) as cache:
+                for record in reviewed:
+                    best = record.best_match
+                    if record.status != "accepted" or best is None or not best.ct_wine_id:
+                        continue
+                    definition = cache.get_definition(best.ct_wine_id)
+                    if definition is None:
+                        continue
+                    user_row = record.user_row or {}
+                    signature = ResolutionCache.signature(
+                        user_row.get("producer"),
+                        user_row.get("name"),
+                        user_row.get("vintage"),
+                    )
+                    cache.record_resolution(signature, definition, best.score)
+        except Exception as exc:
+            logger.warning("Resolution write-back skipped: %s", exc)
 
         # Log review statistics
         accepted = sum(1 for r in reviewed if r.status == "accepted")
@@ -388,6 +452,8 @@ def run_pipeline(
             "mapping": str(mapping_path),
             "mapped": str(mapped_path),
             "normalized": str(normalized_path),
+            "resolution": str(resolution_path),
+            "lookup_urls": str(lookup_urls_path),
             "candidates": str(candidates_path),
             "reviewed": str(reviewed_path),
             "report": str(report_path),
@@ -397,7 +463,7 @@ def run_pipeline(
 
         manifest = {
             "input_path": str(input_path),
-            "canonical_path": str(canonical_path),
+            "ct_cache": str(cache_path),
             "output_path": str(output_path),
             "artifacts": artifacts,
             "stats": {
@@ -406,6 +472,10 @@ def run_pipeline(
                 "rows_mapped": len(mapped_rows),
                 "rows_normalized": len(normalized_rows),
                 "candidate_sets": len(match_results),
+                "resolved_from_cache": sum(
+                    1 for r in resolution_records if r["source"] == "cache"
+                ),
+                "unresolved": len(unresolved_rows),
                 "reviewed_matches": len(reviewed),
                 "accepted_matches": sum(1 for r in reviewed if r.status == "accepted"),
                 "review_needed_matches": sum(1 for r in reviewed if r.status == "review_needed"),
@@ -439,6 +509,8 @@ def run_pipeline(
         "mapping": str(mapping_path),
         "mapped": str(mapped_path),
         "normalized": str(normalized_path),
+        "resolution": str(resolution_path),
+        "lookup_urls": str(lookup_urls_path),
         "candidates": str(candidates_path),
         "reviewed": str(reviewed_path),
         "export": str(output_path),

@@ -18,19 +18,20 @@ to compare manually.
 
 ## Typical Command
 
+Candidates come from the resolution cache (`~/.wine-importer/ct_cache.db` by
+default), not a `--canonical` CSV. Seed it once from a legacy canonical CSV, or
+grow it from browser-confirmed CellarTracker resolutions (`ct-urls` →
+`ct-ingest`).
+
 ```bash
-wine-importer run data/raw/wine_raw_test1.csv \
-  --canonical data/canonical/wine_canonical_clean.csv \
-  --out-dir runs/example
+wine-importer cache import-canonical data/canonical/wine_canonical_clean.csv
+wine-importer run data/raw/wine_raw_test1.csv --out-dir runs/example
 ```
 
 With optional AI helpers:
 
 ```bash
-wine-importer run data/raw/wine_raw_test1.csv \
-  --canonical data/canonical/wine_canonical_clean.csv \
-  --out-dir runs/example \
-  --use-ai
+wine-importer run data/raw/wine_raw_test1.csv --out-dir runs/example --use-ai
 ```
 
 Use `--use-ai` when headers are unusual, non-English, or when you want AI
@@ -40,17 +41,21 @@ and works without an API key.
 Useful ingestion options:
 
 ```bash
-wine-importer run workbook.xlsx --canonical data/canonical/wine_canonical_clean.csv --out-dir runs/example --all-sheets
-wine-importer run notes.txt --canonical data/canonical/wine_canonical_clean.csv --out-dir runs/example --include-quarantine
-wine-importer run cellar_photo.png --canonical data/canonical/wine_canonical_clean.csv --out-dir runs/example --ocr
+wine-importer run workbook.xlsx --out-dir runs/example --all-sheets
+wine-importer run notes.txt --out-dir runs/example --include-quarantine
+wine-importer run cellar_photo.png --out-dir runs/example --ocr
 ```
+
+Rows the cache can't resolve are written to `06a_lookup_urls.csv` with ready
+CellarTracker search URLs; resolve them in the browser, `ct-ingest` the saved
+pages, and re-run — accepted matches are written back into the cache so the
+next run is an exact hit.
 
 ## Flowchart
 
 ```mermaid
 flowchart TD
-    A[Raw wine file] --> B[Stage 0: validate files]
-    C[Canonical wine CSV] --> B
+    A[Raw wine file] --> B[Stage 0: validate input]
 
     B --> D[Stage 1: detect/extract table structure]
     D --> E[Stage 2: parse extracted rows]
@@ -62,8 +67,9 @@ flowchart TD
 
     H --> I[Stage 4: apply mapping]
     I --> J[Stage 5: normalize rows]
-    J --> K[Stage 6: find candidates]
-    K --> L[Score candidates]
+    C[(Resolution cache)] --> K
+    J --> K[Stage 6a: resolve candidates from cache]
+    K --> L[Stage 6b: score candidates]
 
     L --> M{Borderline score and --use-ai?}
     M -->|yes| N[AI semantic score adjustment]
@@ -253,9 +259,14 @@ Artifact:
 05_normalized_rows.json
 ```
 
-### Stage 6: Find and Score Candidates
+### Stage 6: Resolve and Score Candidates
 
-The canonical wine file is loaded into `CanonicalWine` records. Search then
+The resolution cache (`~/.wine-importer/ct_cache.db`, or `--ct-cache`) is loaded
+into `CanonicalWine` records — there is no `--canonical` CSV. Stage 6a searches
+the cache for each normalized row; `06a_resolution.json` records the source
+(`cache`/`unresolved`) and search query, and rows with no candidates are written
+to `06a_lookup_urls.csv` for the browser-assisted loop. Stage 6b scores the
+candidates. Search then
 builds a cached token index and finds likely candidates for each normalized row.
 
 Candidate retrieval uses:
@@ -425,7 +436,7 @@ The full pipeline is normally easiest, but individual stages are available:
 wine-importer inspect data/raw/sample_input.csv
 wine-importer inspect data/raw/workbook.xlsx --all-sheets
 wine-importer normalize runs/example/04_mapped_rows.json --out runs/example/05_normalized_rows.json
-wine-importer match runs/example/05_normalized_rows.json --canonical data/canonical/sample_canonical.csv --out runs/example/06_candidate_matches.json
+wine-importer match runs/example/05_normalized_rows.json --out runs/example/06_candidate_matches.json
 wine-importer review runs/example/06_candidate_matches.json --out runs/example/07_reviewed_matches.json
 wine-importer export runs/example/07_reviewed_matches.json --out runs/example/08_cellartracker_import.csv
 wine-importer export runs/example/07_reviewed_matches.json --out runs/example/08_cellartracker_import.csv --export-review-needed

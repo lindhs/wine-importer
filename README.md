@@ -46,18 +46,22 @@ wine-importer inspect data/raw/sample_input.xlsx --sheet-name Sheet1
 wine-importer inspect data/raw/workbook.xlsx --all-sheets
 wine-importer inspect cellar_photo.png --ocr
 wine-importer inspect unstructured_file.foo --use-ai
-wine-importer run data/raw/sample_input.csv --canonical data/canonical/sample_canonical.csv --out-dir runs/example
-wine-importer run data/raw/sample_input.tsv --canonical data/canonical/sample_canonical.csv --out-dir runs/example --delimiter "\t"
-wine-importer run data/raw/sample_input.xlsx --canonical data/canonical/sample_canonical.csv --out-dir runs/example --sheet-name Sheet1
-wine-importer run data/raw/workbook.xlsx --canonical data/canonical/sample_canonical.csv --out-dir runs/example --all-sheets
-wine-importer run data/raw/notes.txt --canonical data/canonical/sample_canonical.csv --out-dir runs/example --include-quarantine
-wine-importer run cellar_photo.png --canonical data/canonical/sample_canonical.csv --out-dir runs/example --ocr
-wine-importer run some_unknown_file.foo --canonical data/canonical/sample_canonical.csv --out-dir runs/example --use-ai
+# Candidates come from the resolution cache (~/.wine-importer/ct_cache.db by
+# default). Seed it once from a legacy canonical CSV, or grow it from
+# browser-confirmed CellarTracker resolutions (ct-urls -> ct-ingest).
+wine-importer cache import-canonical data/canonical/sample_canonical.csv
 
-wine-importer run data/raw/wine_raw_test1.csv --canonical data/canonical/wine_canonical_clean.csv --out-dir runs/example --use-ai
+wine-importer run data/raw/sample_input.csv --out-dir runs/example
+wine-importer run data/raw/sample_input.tsv --out-dir runs/example --delimiter "\t"
+wine-importer run data/raw/sample_input.xlsx --out-dir runs/example --sheet-name Sheet1
+wine-importer run data/raw/workbook.xlsx --out-dir runs/example --all-sheets
+wine-importer run data/raw/notes.txt --out-dir runs/example --include-quarantine
+wine-importer run cellar_photo.png --out-dir runs/example --ocr
+wine-importer run some_unknown_file.foo --out-dir runs/example --use-ai
+wine-importer run data/raw/wine_raw_test1.csv --ct-cache /tmp/ct.db --out-dir runs/example
 
 wine-importer normalize runs/example/04_mapped_rows.json --out runs/example/05_normalized_rows.json
-wine-importer match runs/example/05_normalized_rows.json --canonical data/canonical/sample_canonical.csv --out runs/example/06_candidate_matches.json
+wine-importer match runs/example/05_normalized_rows.json --out runs/example/06_candidate_matches.json
 wine-importer review runs/example/06_candidate_matches.json --out runs/example/07_reviewed_matches.json
 wine-importer export runs/example/07_reviewed_matches.json --out runs/example/08_cellartracker_import.csv
 ```

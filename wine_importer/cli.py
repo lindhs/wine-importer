@@ -25,7 +25,7 @@ from .pipeline import run_pipeline
 from .report import export_review_report, print_review_report
 from .review import review_matches
 from .score import rank_candidates
-from .search import find_candidate_records_with_diagnostics, load_canonical_wines
+from .search import find_candidate_records_with_diagnostics
 from .parse import inspect_input
 
 app = typer.Typer(help="wine-importer CLI for canonicalizing wine spreadsheets")
@@ -81,6 +81,19 @@ def cache_import_json(
         added = store.import_json_store(json_path)
         total = store.stats()["wine_definitions"]
     typer.echo(f"Imported {added} new definitions from {json_path} (+ -> {total} total) into {cache_path}")
+
+
+@cache_app.command("import-canonical")
+def cache_import_canonical(
+    csv_path: str,
+    cache: str | None = typer.Option(None, "--cache", help="Cache path."),
+) -> None:
+    """Seed the cache from a legacy hand-curated canonical CSV."""
+    cache_path = _cache_path(cache)
+    with ResolutionCache(cache_path) as store:
+        added = store.import_canonical_csv(csv_path)
+        total = store.stats()["wine_definitions"]
+    typer.echo(f"Imported {added} wines from {csv_path} -> {total} total in {cache_path}")
 
 
 def _serialize_match_row(row: NormalizedWineRow) -> dict:
@@ -145,8 +158,12 @@ def inspect(
 @app.command()
 def run(
     input_path: str,
-    canonical: str = typer.Option(..., help="Canonical wine CSV file"),
     out_dir: str = typer.Option("runs/example", help="Output run directory"),
+    ct_cache: str | None = typer.Option(
+        None,
+        "--ct-cache",
+        help="Resolution cache path (default ~/.wine-importer/ct_cache.db).",
+    ),
     delimiter: str | None = typer.Option(
         None, "--delimiter", "-d", help="Delimiter for CSV/TSV input"
     ),
@@ -187,8 +204,8 @@ def run(
     """Run the full import pipeline and emit staged artifacts."""
     run_pipeline(
         input_path,
-        canonical,
         out_dir,
+        ct_cache=ct_cache,
         delimiter=delimiter,
         sheet_name=sheet_name,
         use_ai=use_ai,
@@ -211,11 +228,21 @@ def normalize(mapped_json: str, out: str) -> None:
 
 
 @app.command()
-def match(normalized_json: str, canonical: str, out: str) -> None:
-    """Match normalized rows against a canonical CSV and write candidate matches."""
+def match(
+    normalized_json: str,
+    out: str,
+    ct_cache: str | None = typer.Option(
+        None,
+        "--ct-cache",
+        help="Resolution cache path (default ~/.wine-importer/ct_cache.db).",
+    ),
+) -> None:
+    """Match normalized rows against the resolution cache and write candidate matches."""
     rows = read_json(normalized_json)
     normalized_rows = [NormalizedWineRow(**row) for row in rows]
-    canonical_wines = load_canonical_wines(canonical)
+    cache_path = Path(ct_cache) if ct_cache else DEFAULT_CACHE_PATH
+    with ResolutionCache(cache_path) as cache:
+        canonical_wines = cache.all_canonical()
     match_results: list[MatchResult] = []
     for row in normalized_rows:
         search_results = find_candidate_records_with_diagnostics(row, canonical_wines)

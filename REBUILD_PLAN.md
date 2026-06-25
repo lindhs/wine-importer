@@ -202,7 +202,7 @@ CLI surface: `--canonical` is deleted; `--ct-cache PATH` overrides the cache loc
 
 `06a_resolution.json` is the audit artifact: for every row it records which source resolved it (cache / browser-confirmed / none) and the search query. The run manifest gains resolution counts (cache hits, newly ingested, unresolved).
 
-**Deliverables:** resolution stage, new artifact, `--canonical` removal with golden-test update, manifest extensions, updated mermaid flowchart in WORKFLOW.md, integration tests with a pre-seeded cache.
+**Deliverables (shipped):** `--canonical` deleted from `run_pipeline`, `run`, and `match`; the cache is the sole candidate source (`ResolutionCache.all_canonical()`). Stage 6a emits `06a_resolution.json` (per-row source/query) and `06a_lookup_urls.csv` (unresolved rows → browser loop); the manifest gains `ct_cache`, `resolved_from_cache`, `unresolved`. Accepted matches are written back to the `resolutions` table (the flywheel). `cache import-canonical` migrates a legacy CSV. The golden run is byte-identical (24/5/2) because the canonical→cache round-trip preserves scoring, so its counts didn't need re-pinning beyond the two new resolution stats. Tests seed a cache via the `seed_cache` conftest fixture; new tests cover the unresolved→lookup path and the write-back.
 
 ---
 

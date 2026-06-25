@@ -329,15 +329,15 @@ def filter_empty_rows(rows: list[MappedWineRow]) -> tuple[list[MappedWineRow], i
 
 def log_pipeline_start(
     input_path: str,
-    canonical_path: str,
     out_dir: str,
+    ct_cache: str | None = None,
 ) -> None:
     """Log pipeline initialization."""
     logger.info("=" * 70)
     logger.info("Starting wine-importer pipeline")
     logger.info("=" * 70)
     logger.info(f"Input: {input_path}")
-    logger.info(f"Canonical: {canonical_path}")
+    logger.info(f"Resolution cache: {ct_cache}")
     logger.info(f"Output: {out_dir}")
 
 

@@ -7,15 +7,17 @@ import yaml
 
 from wine_importer.ai_runtime import load_project_env
 from wine_importer.pipeline import run_pipeline
+from wine_importer.resolution_cache import ResolutionCache
 
 
-def test_pipeline_creates_artifacts(tmp_path: Path) -> None:
+def test_pipeline_creates_artifacts(tmp_path: Path, seed_cache) -> None:
     root = Path(__file__).resolve().parents[1]
     input_path = root / "data" / "raw" / "sample_input.csv"
     canonical_path = root / "data" / "canonical" / "sample_canonical.csv"
     out_dir = tmp_path / "run"
+    ct_cache = seed_cache(canonical_path)
 
-    artifacts = run_pipeline(str(input_path), str(canonical_path), str(out_dir))
+    artifacts = run_pipeline(str(input_path), str(out_dir), ct_cache=ct_cache)
 
     assert Path(artifacts["raw_copy"]).exists()
     assert Path(artifacts["structure_report"]).exists()
@@ -51,11 +53,12 @@ def test_pipeline_creates_artifacts(tmp_path: Path) -> None:
     assert quarantine == []
 
 
-def test_pipeline_writes_ai_input_quality_artifact(tmp_path: Path, monkeypatch) -> None:
+def test_pipeline_writes_ai_input_quality_artifact(tmp_path: Path, monkeypatch, seed_cache) -> None:
     root = Path(__file__).resolve().parents[1]
     input_path = root / "data" / "raw" / "sample_input.csv"
     canonical_path = root / "data" / "canonical" / "sample_canonical.csv"
     out_dir = tmp_path / "run"
+    ct_cache = seed_cache(canonical_path)
 
     def fake_assessment(sample_data):
         return {"completeness": 8, "rows_sampled": len(sample_data)}
@@ -67,8 +70,8 @@ def test_pipeline_writes_ai_input_quality_artifact(tmp_path: Path, monkeypatch) 
 
     artifacts = run_pipeline(
         str(input_path),
-        str(canonical_path),
         str(out_dir),
+        ct_cache=ct_cache,
         use_ai=True,
     )
 
@@ -82,9 +85,10 @@ def test_pipeline_writes_ai_input_quality_artifact(tmp_path: Path, monkeypatch) 
     assert manifest["policy"]["review_threshold"] == 0.55
 
 
-def test_pipeline_extracts_table_after_preamble(tmp_path: Path) -> None:
+def test_pipeline_extracts_table_after_preamble(tmp_path: Path, seed_cache) -> None:
     root = Path(__file__).resolve().parents[1]
     canonical_path = root / "data" / "canonical" / "sample_canonical.csv"
+    ct_cache = seed_cache(canonical_path)
     input_path = tmp_path / "preamble.csv"
     input_path.write_text(
         "My Cellar Inventory\n"
@@ -96,7 +100,7 @@ def test_pipeline_extracts_table_after_preamble(tmp_path: Path) -> None:
     )
     out_dir = tmp_path / "run"
 
-    artifacts = run_pipeline(str(input_path), str(canonical_path), str(out_dir))
+    artifacts = run_pipeline(str(input_path), str(out_dir), ct_cache=ct_cache)
 
     parsed = json.loads(Path(artifacts["parsed"]).read_text(encoding="utf-8"))
     with Path(artifacts["raw_copy"]).open("r", encoding="utf-8", newline="") as source:
@@ -107,9 +111,10 @@ def test_pipeline_extracts_table_after_preamble(tmp_path: Path) -> None:
     assert parsed[0]["source_row_number"] == 5
 
 
-def test_pipeline_can_include_quarantined_text_lines_in_review(tmp_path: Path) -> None:
+def test_pipeline_can_include_quarantined_text_lines_in_review(tmp_path: Path, seed_cache) -> None:
     root = Path(__file__).resolve().parents[1]
     canonical_path = root / "data" / "canonical" / "sample_canonical.csv"
+    ct_cache = seed_cache(canonical_path)
     input_path = tmp_path / "inventory.txt"
     input_path.write_text(
         "Ridge Lytton Springs 1993 - 2 bottles\n"
@@ -120,8 +125,8 @@ def test_pipeline_can_include_quarantined_text_lines_in_review(tmp_path: Path) -
 
     artifacts = run_pipeline(
         str(input_path),
-        str(canonical_path),
         str(out_dir),
+        ct_cache=ct_cache,
         include_quarantine=True,
     )
 
@@ -134,6 +139,55 @@ def test_pipeline_can_include_quarantined_text_lines_in_review(tmp_path: Path) -
     assert reviewed[-1]["user_row"]["quarantine_reason"] == "line did not contain enough wine evidence"
     assert manifest["stats"]["rows_quarantined"] == 1
     assert manifest["export_policy"]["include_quarantine"] is True
+
+
+def test_pipeline_sends_unresolved_rows_to_lookup_urls(tmp_path: Path) -> None:
+    root = Path(__file__).resolve().parents[1]
+    input_path = root / "data" / "raw" / "sample_input.csv"
+    out_dir = tmp_path / "run"
+    empty_cache = tmp_path / "empty.db"  # valid but empty cache: nothing resolves
+
+    artifacts = run_pipeline(str(input_path), str(out_dir), ct_cache=str(empty_cache))
+
+    manifest = yaml.safe_load(Path(artifacts["manifest"]).read_text(encoding="utf-8"))
+    assert manifest["stats"]["resolved_from_cache"] == 0
+    assert manifest["stats"]["unresolved"] == manifest["stats"]["candidate_sets"]
+    assert manifest["stats"]["accepted_matches"] == 0
+    assert manifest["ct_cache"] == str(empty_cache)
+
+    resolution = json.loads(Path(artifacts["resolution"]).read_text(encoding="utf-8"))
+    assert all(record["source"] == "unresolved" for record in resolution)
+
+    with Path(artifacts["lookup_urls"]).open("r", encoding="utf-8", newline="") as handle:
+        lookup_rows = list(csv.DictReader(handle))
+    assert lookup_rows
+    assert "cellartracker.com" in lookup_rows[0]["url"]
+
+
+def test_pipeline_records_accepted_resolutions_back_to_cache(tmp_path: Path, seed_cache) -> None:
+    root = Path(__file__).resolve().parents[1]
+    input_path = root / "data" / "raw" / "wine_raw_test1.csv"
+    canonical_path = root / "data" / "canonical" / "wine_canonical_clean.csv"
+    ct_cache = seed_cache(canonical_path)
+
+    artifacts = run_pipeline(str(input_path), str(tmp_path / "run"), ct_cache=ct_cache)
+
+    reviewed = json.loads(Path(artifacts["reviewed"]).read_text(encoding="utf-8"))
+    accepted = [r for r in reviewed if r["status"] == "accepted"]
+    assert accepted
+
+    sample = accepted[0]
+    with ResolutionCache(ct_cache) as cache:
+        assert cache.stats()["resolutions_positive"] > 0
+        hit = cache.lookup(
+            ResolutionCache.signature(
+                sample["user_row"].get("producer"),
+                sample["user_row"].get("name"),
+                sample["user_row"].get("vintage"),
+            )
+        )
+    assert hit is not None
+    assert hit.ct_wine_id == sample["best_match"]["ct_wine_id"]
 
 
 def test_load_project_env_prefers_current_working_directory(tmp_path: Path, monkeypatch) -> None:

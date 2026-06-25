@@ -21,6 +21,8 @@ GOLDEN_STATS = {
     "rows_mapped": 31,
     "rows_normalized": 31,
     "candidate_sets": 31,
+    "resolved_from_cache": 31,
+    "unresolved": 0,
     "reviewed_matches": 31,
     "accepted_matches": 24,
     "review_needed_matches": 5,
@@ -29,13 +31,14 @@ GOLDEN_STATS = {
 GOLDEN_EXPORT_ROWS = 24  # accepted rows only (default export policy)
 
 
-def test_golden_run_matches_reference_counts(tmp_path: Path) -> None:
+def test_golden_run_matches_reference_counts(tmp_path: Path, seed_cache) -> None:
     root = Path(__file__).resolve().parents[1]
     input_path = root / "data" / "raw" / "wine_raw_test1.csv"
     canonical_path = root / "data" / "canonical" / "wine_canonical_clean.csv"
     out_dir = tmp_path / "run"
+    ct_cache = seed_cache(canonical_path)
 
-    artifacts = run_pipeline(str(input_path), str(canonical_path), str(out_dir))
+    artifacts = run_pipeline(str(input_path), str(out_dir), ct_cache=ct_cache)
 
     manifest = yaml.safe_load(Path(artifacts["manifest"]).read_text(encoding="utf-8"))
     assert manifest["stats"] == GOLDEN_STATS

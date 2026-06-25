@@ -219,6 +219,14 @@ class ResolutionCache:
                 definitions.append(definition)
         return self.store_definitions(definitions)
 
+    def import_canonical_csv(self, path: str | Path) -> int:
+        # Migrate a legacy hand-curated canonical CSV into the cache so the
+        # offline pipeline keeps working without a --canonical flag.
+        from .search import load_canonical_wines
+
+        definitions = [_definition_from_canonical(wine) for wine in load_canonical_wines(path)]
+        return self.store_definitions(definitions)
+
     def stats(self) -> dict[str, int]:
         definitions = self._conn.execute(
             "SELECT COUNT(*) AS n FROM wine_definitions"
@@ -238,6 +246,24 @@ class ResolutionCache:
     def clear(self) -> None:
         self._conn.executescript("DELETE FROM resolutions; DELETE FROM wine_definitions;")
         self._conn.commit()
+
+
+def _definition_from_canonical(wine: CanonicalWine) -> CTWineDefinition:
+    return CTWineDefinition(
+        ct_wine_id=wine.ct_wine_id or wine.id,
+        display_name=" ".join(p for p in (wine.vintage, wine.producer, wine.name) if p),
+        vintage=wine.vintage or None,
+        type=wine.type,
+        producer=wine.producer or None,
+        varietal=wine.varietal or None,
+        designation=wine.designation,
+        vineyard=wine.vineyard,
+        country=wine.country,
+        region=wine.region or None,
+        subregion=wine.subregion,
+        appellation=wine.appellation or None,
+        url="",
+    )
 
 
 def _definition_from_json(raw: str) -> CTWineDefinition | None:
