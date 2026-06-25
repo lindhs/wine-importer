@@ -1,4 +1,5 @@
 import csv
+import hashlib
 from collections import defaultdict
 from dataclasses import dataclass
 from heapq import nlargest
@@ -57,7 +58,8 @@ SEARCH_STOPWORDS = {
     "white",
     "wine",
 }
-_SEARCH_CACHE: dict[int, tuple[tuple[object, ...], tuple["_CanonicalSearchRecord", ...], dict[str, tuple[int, ...]]]] = {}
+_SEARCH_CACHE: dict[str, tuple[tuple["_CanonicalSearchRecord", ...], dict[str, tuple[int, ...]]]] = {}
+_SEARCH_CACHE_MAX_ENTRIES = 16
 
 
 @dataclass(frozen=True)
@@ -323,22 +325,29 @@ def _tokenize(*values: str | None) -> frozenset[str]:
     return frozenset(tokens)
 
 
-def _canonical_signature(canonical_wines: list[CanonicalWine]) -> tuple[object, ...]:
-    if not canonical_wines:
-        return (0,)
-    first_ids = tuple(wine.id for wine in canonical_wines[:3])
-    last_ids = tuple(wine.id for wine in canonical_wines[-3:])
-    return (len(canonical_wines), first_ids, last_ids)
+def _canonical_content_key(canonical_wines: list[CanonicalWine]) -> str:
+    # Key the index cache on canonical *content*, not id(canonical_wines):
+    # a Python object id can be reused after GC and silently serve a stale
+    # index for a different list.
+    hasher = hashlib.sha1()
+    hasher.update(str(len(canonical_wines)).encode("utf-8"))
+    for wine in canonical_wines:
+        hasher.update(
+            "\x1f".join(
+                (wine.id, wine.producer, wine.name, wine.vintage, wine.appellation)
+            ).encode("utf-8")
+        )
+        hasher.update(b"\x1e")
+    return hasher.hexdigest()
 
 
 def _build_search_index(
     canonical_wines: list[CanonicalWine],
 ) -> tuple[tuple[_CanonicalSearchRecord, ...], dict[str, tuple[int, ...]]]:
-    cache_key = id(canonical_wines)
-    signature = _canonical_signature(canonical_wines)
+    cache_key = _canonical_content_key(canonical_wines)
     cached = _SEARCH_CACHE.get(cache_key)
-    if cached and cached[0] == signature:
-        return cached[1], cached[2]
+    if cached is not None:
+        return cached
 
     records: list[_CanonicalSearchRecord] = []
     token_index: defaultdict[str, list[int]] = defaultdict(list)
@@ -369,7 +378,9 @@ def _build_search_index(
 
     finalized_index = {token: tuple(indices) for token, indices in token_index.items()}
     finalized_records = tuple(records)
-    _SEARCH_CACHE[cache_key] = (signature, finalized_records, finalized_index)
+    if len(_SEARCH_CACHE) >= _SEARCH_CACHE_MAX_ENTRIES:
+        _SEARCH_CACHE.clear()
+    _SEARCH_CACHE[cache_key] = (finalized_records, finalized_index)
     return finalized_records, finalized_index
 
 

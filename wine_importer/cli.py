@@ -8,18 +8,15 @@ import typer
 
 from .cellartracker_lookup import (
     CANONICAL_CSV_COLUMNS,
-    DEFAULT_RESOLUTION_STORE,
     WINE_URL_TEMPLATE,
     CTParseError,
-    append_resolutions,
     build_search_query,
     build_search_url,
     canonical_to_csv_row,
     extract_iwine_ids,
-    load_resolution_store,
     parse_wine_definition,
-    resolution_store_to_canonical,
 )
+from .resolution_cache import DEFAULT_CACHE_PATH, ResolutionCache
 from .export import export_reviewed_matches
 from .io import read_json, write_json
 from .models import MatchResult, MappedWineRow, NormalizedWineRow
@@ -32,6 +29,58 @@ from .search import find_candidate_records_with_diagnostics, load_canonical_wine
 from .parse import inspect_input
 
 app = typer.Typer(help="wine-importer CLI for canonicalizing wine spreadsheets")
+cache_app = typer.Typer(help="Inspect and manage the CellarTracker resolution cache.")
+app.add_typer(cache_app, name="cache")
+
+
+def _cache_path(cache: str | None) -> Path:
+    return Path(cache) if cache else DEFAULT_CACHE_PATH
+
+
+@cache_app.command("stats")
+def cache_stats(
+    cache: str | None = typer.Option(None, "--cache", help="Cache path."),
+) -> None:
+    """Show counts of cached wine definitions and resolutions."""
+    cache_path = _cache_path(cache)
+    if not cache_path.exists():
+        typer.echo(f"No cache at {cache_path}")
+        return
+    with ResolutionCache(cache_path) as store:
+        stats = store.stats()
+    typer.echo(f"Cache: {cache_path}")
+    for key, value in stats.items():
+        typer.echo(f"  {key}: {value}")
+
+
+@cache_app.command("clear")
+def cache_clear(
+    cache: str | None = typer.Option(None, "--cache", help="Cache path."),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation."),
+) -> None:
+    """Delete all cached resolutions and wine definitions."""
+    cache_path = _cache_path(cache)
+    if not cache_path.exists():
+        typer.echo(f"No cache at {cache_path}")
+        return
+    if not yes:
+        typer.confirm(f"Clear all resolutions in {cache_path}?", abort=True)
+    with ResolutionCache(cache_path) as store:
+        store.clear()
+    typer.echo("Cache cleared.")
+
+
+@cache_app.command("import-json")
+def cache_import_json(
+    json_path: str,
+    cache: str | None = typer.Option(None, "--cache", help="Cache path."),
+) -> None:
+    """Migrate a legacy resolutions.json store into the SQLite cache."""
+    cache_path = _cache_path(cache)
+    with ResolutionCache(cache_path) as store:
+        added = store.import_json_store(json_path)
+        total = store.stats()["wine_definitions"]
+    typer.echo(f"Imported {added} new definitions from {json_path} (+ -> {total} total) into {cache_path}")
 
 
 def _serialize_match_row(row: NormalizedWineRow) -> dict:
@@ -304,10 +353,10 @@ def ct_ingest(
         "--inbox",
         help="Directory of saved CellarTracker wine pages (default <run_dir>/ct_inbox).",
     ),
-    store: str | None = typer.Option(
+    cache: str | None = typer.Option(
         None,
-        "--store",
-        help="Resolution store path (default ~/.wine-importer/resolutions.json).",
+        "--cache",
+        help="Resolution cache path (default ~/.wine-importer/ct_cache.db).",
     ),
 ) -> None:
     """Parse saved CellarTracker wine pages and record the resolved identities."""
@@ -332,29 +381,29 @@ def ct_ingest(
 
     out_path = run / "06a_resolutions.json"
     write_json(results, out_path)
-    store_path = Path(store) if store else DEFAULT_RESOLUTION_STORE
-    added = append_resolutions(definitions, store_path)
+    cache_path = Path(cache) if cache else DEFAULT_CACHE_PATH
+    with ResolutionCache(cache_path) as store:
+        added = store.store_definitions(definitions)
+        total = store.stats()["wine_definitions"]
 
     error_count = len(results) - len(definitions)
     typer.echo(f"Parsed {len(definitions)} wine pages ({error_count} errors) -> {out_path}")
-    typer.echo(
-        f"Resolution store: {store_path} "
-        f"(+{added} new, {len(load_resolution_store(store_path))} total)"
-    )
+    typer.echo(f"Resolution cache: {cache_path} (+{added} new, {total} total)")
 
 
 @app.command("ct-build-canonical")
 def ct_build_canonical(
     out: str = typer.Option(..., "--out", help="Canonical CSV path to write."),
-    store: str | None = typer.Option(
+    cache: str | None = typer.Option(
         None,
-        "--store",
-        help="Resolution store path (default ~/.wine-importer/resolutions.json).",
+        "--cache",
+        help="Resolution cache path (default ~/.wine-importer/ct_cache.db).",
     ),
 ) -> None:
     """Build a canonical CSV from confirmed CellarTracker resolutions."""
-    store_path = Path(store) if store else DEFAULT_RESOLUTION_STORE
-    wines = resolution_store_to_canonical(load_resolution_store(store_path))
+    cache_path = Path(cache) if cache else DEFAULT_CACHE_PATH
+    with ResolutionCache(cache_path) as store:
+        wines = store.all_canonical()
     out_path = Path(out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open("w", encoding="utf-8", newline="") as handle:
@@ -362,7 +411,7 @@ def ct_build_canonical(
         writer.writeheader()
         for wine in wines:
             writer.writerow(canonical_to_csv_row(wine))
-    typer.echo(f"Wrote {len(wines)} canonical wines from {store_path} to {out_path}")
+    typer.echo(f"Wrote {len(wines)} canonical wines from {cache_path} to {out_path}")
 
 
 @app.command("ct-lookup")

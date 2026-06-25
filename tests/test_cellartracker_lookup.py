@@ -17,6 +17,7 @@ from wine_importer.cellartracker_lookup import (
 )
 from wine_importer.cli import app
 from wine_importer.models import NormalizedWineRow
+from wine_importer.resolution_cache import ResolutionCache
 from wine_importer.score import rank_candidates
 from wine_importer.search import load_canonical_wines
 
@@ -198,17 +199,18 @@ def test_ct_ingest_parses_inbox_and_updates_store(tmp_path: Path) -> None:
     inbox.mkdir(parents=True)
     shutil.copy(FIXTURES / "wine_full.html", inbox / "wine_full.html")
     (inbox / "junk.html").write_text("<html><body>nothing</body></html>", encoding="utf-8")
-    store_path = tmp_path / "resolutions.json"
+    cache_path = tmp_path / "ct_cache.db"
 
     result = CliRunner().invoke(
-        app, ["ct-ingest", str(run), "--store", str(store_path)]
+        app, ["ct-ingest", str(run), "--cache", str(cache_path)]
     )
 
     assert result.exit_code == 0, result.output
     resolutions = json.loads((run / "06a_resolutions.json").read_text(encoding="utf-8"))
     statuses = {item["file"]: item["status"] for item in resolutions}
     assert statuses == {"wine_full.html": "parsed", "junk.html": "error"}
-    assert "18856" in load_resolution_store(store_path)
+    with ResolutionCache(cache_path) as store:
+        assert store.get_definition("18856") is not None
 
 
 def test_ct_lookup_prints_url_for_free_text() -> None:
@@ -219,13 +221,14 @@ def test_ct_lookup_prints_url_for_free_text() -> None:
 
 
 def test_ct_build_canonical_preserves_ct_wine_id_through_round_trip(tmp_path: Path) -> None:
-    store_path = tmp_path / "resolutions.json"
-    append_resolutions([parse_wine_definition(_fixture("wine_full.html"))], store_path)
+    cache_path = tmp_path / "ct_cache.db"
+    with ResolutionCache(cache_path) as store:
+        store.store_definition(parse_wine_definition(_fixture("wine_full.html")))
     canonical_path = tmp_path / "canonical.csv"
 
     result = CliRunner().invoke(
         app,
-        ["ct-build-canonical", "--out", str(canonical_path), "--store", str(store_path)],
+        ["ct-build-canonical", "--out", str(canonical_path), "--cache", str(cache_path)],
     )
 
     assert result.exit_code == 0, result.output
@@ -241,12 +244,13 @@ def test_ct_build_canonical_preserves_ct_wine_id_through_round_trip(tmp_path: Pa
 
 
 def test_built_canonical_drives_a_match_carrying_ct_wine_id(tmp_path: Path) -> None:
-    store_path = tmp_path / "resolutions.json"
-    append_resolutions([parse_wine_definition(_fixture("wine_full.html"))], store_path)
+    cache_path = tmp_path / "ct_cache.db"
+    with ResolutionCache(cache_path) as store:
+        store.store_definition(parse_wine_definition(_fixture("wine_full.html")))
     canonical_path = tmp_path / "canonical.csv"
     CliRunner().invoke(
         app,
-        ["ct-build-canonical", "--out", str(canonical_path), "--store", str(store_path)],
+        ["ct-build-canonical", "--out", str(canonical_path), "--cache", str(cache_path)],
     )
 
     row = NormalizedWineRow(

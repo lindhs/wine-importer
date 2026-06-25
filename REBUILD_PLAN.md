@@ -159,7 +159,7 @@ The signature is built from normalized fields so that "Ch. Talbot / 1989" and "C
 
 **Added from review:** while restructuring candidate sourcing, fix the in-memory search-index cache in `search.py` — `_SEARCH_CACHE` is keyed on `id(canonical_wines)` (`search.py:334`), which can silently serve stale data when a garbage-collected object's id is reused. Replace the key with a content hash of the canonical records.
 
-**Deliverables:** cache module with TTL handling and negative caching, migration from the Phase 3 JSON store, cache CLI subcommands, content-hash fix for `_SEARCH_CACHE`.
+**Deliverables (shipped):** `resolution_cache.py` with `ResolutionCache` (SQLite, `wine_definitions` + `resolutions` tables), positive/negative TTLs, `signature`/`signature_for_row` helpers, `all_canonical()`, `import_json_store()` migration of the Phase 3 JSON store; `ct-ingest`/`ct-build-canonical` repointed at `--cache`; `cache stats|clear|import-json` CLI; `_SEARCH_CACHE` rekeyed from `id()` to a content hash (with a size cap). The signature→iWine `resolutions` table is populated by Phase 6's resolution stage; `record_resolution`/`record_miss`/`lookup` are ready for it.
 
 ---
 
