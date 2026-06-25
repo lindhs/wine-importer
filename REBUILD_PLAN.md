@@ -125,6 +125,7 @@ No HTTP code anywhere in the module. `to_canonical_wine` produces `id="ct:{iWine
 - The user saves wine pages ("HTML Only") into `<run_dir>/ct_inbox/`.
 - `wine-importer ct-ingest <run_dir>` — parses the inbox, writes `06a_resolutions.json` (parsed definitions and per-file parse errors), appends confirmed identities to the persistent store at `~/.wine-importer/resolutions.json`.
 - `wine-importer ct-lookup "<text or saved file>"` — debug helper.
+- `wine-importer ct-build-canonical --out <csv>` — interim bridge: materializes the resolution store into a canonical CSV that today's `--canonical` flag consumes. `load_canonical_wines` was taught to read the `ct_wine_id` column back (id `ct:{iWine}`, `source=cellartracker_html`), so the identity flows through matching to export. This turns the loop into a flywheel before Phase 6; Phase 6 reads the store natively and makes this command redundant.
 
 ### Testing
 

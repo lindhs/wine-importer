@@ -138,6 +138,51 @@ def to_canonical_wine(definition: CTWineDefinition) -> CanonicalWine:
     )
 
 
+# Columns written by build-canonical; load_canonical_wines reads ct_wine_id back
+# so the CellarTracker identity survives the round-trip into matching.
+CANONICAL_CSV_COLUMNS = [
+    "ct_wine_id",
+    "producer",
+    "name",
+    "vintage",
+    "country",
+    "region",
+    "appellation",
+    "varietal",
+    "size",
+    "notes",
+]
+
+
+def resolution_store_to_canonical(store: dict[str, dict]) -> list[CanonicalWine]:
+    wines: list[CanonicalWine] = []
+    for entry in store.values():
+        definition_data = entry.get("definition")
+        if not isinstance(definition_data, dict):
+            continue
+        try:
+            definition = CTWineDefinition(**definition_data)
+        except TypeError:
+            continue
+        wines.append(to_canonical_wine(definition))
+    return wines
+
+
+def canonical_to_csv_row(wine: CanonicalWine) -> dict[str, str]:
+    return {
+        "ct_wine_id": wine.ct_wine_id or "",
+        "producer": wine.producer,
+        "name": wine.name,
+        "vintage": wine.vintage,
+        "country": wine.country or "",
+        "region": wine.region,
+        "appellation": wine.appellation,
+        "varietal": wine.varietal,
+        "size": wine.size or "",
+        "notes": wine.notes or "",
+    }
+
+
 def load_resolution_store(path: str | Path = DEFAULT_RESOLUTION_STORE) -> dict[str, dict]:
     store_path = Path(path)
     if not store_path.exists():

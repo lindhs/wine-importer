@@ -92,9 +92,11 @@ def load_canonical_wines(path: str | Path) -> list[CanonicalWine]:
         name = extracted["name"]
         if not producer and not name:
             continue
+        ct_wine_id = _clean_text(row.get("ct_wine_id"))
         records.append(
             CanonicalWine(
-                id=str(index),
+                id=f"ct:{ct_wine_id}" if ct_wine_id else str(index),
+                ct_wine_id=ct_wine_id,
                 producer=producer or "",
                 name=name or "",
                 vintage=extracted["vintage"] or "",
@@ -105,6 +107,7 @@ def load_canonical_wines(path: str | Path) -> list[CanonicalWine]:
                 quantity=_safe_int(extracted["quantity"]),
                 size=extracted["size"] or "",
                 notes=notes or None,
+                source="cellartracker_html" if ct_wine_id else "local_csv",
             )
         )
     return records

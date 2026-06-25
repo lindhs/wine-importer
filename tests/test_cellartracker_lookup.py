@@ -18,6 +18,7 @@ from wine_importer.cellartracker_lookup import (
 from wine_importer.cli import app
 from wine_importer.models import NormalizedWineRow
 from wine_importer.score import rank_candidates
+from wine_importer.search import load_canonical_wines
 
 FIXTURES = Path(__file__).parent / "fixtures" / "cellartracker"
 
@@ -215,3 +216,58 @@ def test_ct_lookup_prints_url_for_free_text() -> None:
 
     assert result.exit_code == 0, result.output
     assert "szSearch=1989+chateau+talbot" in result.output
+
+
+def test_ct_build_canonical_preserves_ct_wine_id_through_round_trip(tmp_path: Path) -> None:
+    store_path = tmp_path / "resolutions.json"
+    append_resolutions([parse_wine_definition(_fixture("wine_full.html"))], store_path)
+    canonical_path = tmp_path / "canonical.csv"
+
+    result = CliRunner().invoke(
+        app,
+        ["ct-build-canonical", "--out", str(canonical_path), "--store", str(store_path)],
+    )
+
+    assert result.exit_code == 0, result.output
+    wines = load_canonical_wines(canonical_path)
+    assert len(wines) == 1
+    wine = wines[0]
+    assert wine.id == "ct:18856"
+    assert wine.ct_wine_id == "18856"
+    assert wine.producer == "Ridge"
+    assert wine.name == "Lytton Springs"
+    assert wine.appellation == "Dry Creek Valley"
+    assert wine.source == "cellartracker_html"
+
+
+def test_built_canonical_drives_a_match_carrying_ct_wine_id(tmp_path: Path) -> None:
+    store_path = tmp_path / "resolutions.json"
+    append_resolutions([parse_wine_definition(_fixture("wine_full.html"))], store_path)
+    canonical_path = tmp_path / "canonical.csv"
+    CliRunner().invoke(
+        app,
+        ["ct-build-canonical", "--out", str(canonical_path), "--store", str(store_path)],
+    )
+
+    row = NormalizedWineRow(
+        row_number=1,
+        producer="Ridge",
+        name="Lytton Springs",
+        vintage="1993",
+        normalized_producer="ridge",
+        normalized_name="lytton springs",
+        normalized_vintage="1993",
+    )
+    candidates = rank_candidates(row, load_canonical_wines(canonical_path))
+
+    assert candidates[0].ct_wine_id == "18856"
+    assert candidates[0].score > 0.7
+
+
+def test_local_csv_without_ct_wine_id_keeps_sequential_id() -> None:
+    root = Path(__file__).resolve().parents[1]
+    wines = load_canonical_wines(root / "data" / "canonical" / "wine_canonical_clean.csv")
+
+    assert wines[0].id == "1"
+    assert wines[0].ct_wine_id is None
+    assert wines[0].source == "local_csv"

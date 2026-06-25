@@ -7,15 +7,18 @@ from pathlib import Path
 import typer
 
 from .cellartracker_lookup import (
+    CANONICAL_CSV_COLUMNS,
     DEFAULT_RESOLUTION_STORE,
     WINE_URL_TEMPLATE,
     CTParseError,
     append_resolutions,
     build_search_query,
     build_search_url,
+    canonical_to_csv_row,
     extract_iwine_ids,
     load_resolution_store,
     parse_wine_definition,
+    resolution_store_to_canonical,
 )
 from .export import export_reviewed_matches
 from .io import read_json, write_json
@@ -338,6 +341,28 @@ def ct_ingest(
         f"Resolution store: {store_path} "
         f"(+{added} new, {len(load_resolution_store(store_path))} total)"
     )
+
+
+@app.command("ct-build-canonical")
+def ct_build_canonical(
+    out: str = typer.Option(..., "--out", help="Canonical CSV path to write."),
+    store: str | None = typer.Option(
+        None,
+        "--store",
+        help="Resolution store path (default ~/.wine-importer/resolutions.json).",
+    ),
+) -> None:
+    """Build a canonical CSV from confirmed CellarTracker resolutions."""
+    store_path = Path(store) if store else DEFAULT_RESOLUTION_STORE
+    wines = resolution_store_to_canonical(load_resolution_store(store_path))
+    out_path = Path(out)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with out_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=CANONICAL_CSV_COLUMNS)
+        writer.writeheader()
+        for wine in wines:
+            writer.writerow(canonical_to_csv_row(wine))
+    typer.echo(f"Wrote {len(wines)} canonical wines from {store_path} to {out_path}")
 
 
 @app.command("ct-lookup")
