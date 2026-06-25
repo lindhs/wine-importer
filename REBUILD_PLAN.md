@@ -212,7 +212,7 @@ The export's job changes subtly: accepted rows resolved via CellarTracker now ca
 
 `09_match_report.csv` gains three columns: `ct_wine_id`, `ct_url`, and `resolution_source`. A reviewer can now click straight to the CellarTracker page to verify a borderline match — this is the single biggest quality-of-life improvement for the human-in-the-loop step.
 
-**Deliverables:** export changes with tests, report columns, README/WORKFLOW updates.
+**Deliverables (shipped):** export Notes now carry `ct_wine_id={id}` and `ct_url=…` provenance for resolved matches (a reviewer can click straight to the CellarTracker page); `09_match_report.csv` gains `ct_wine_id`, `ct_url`, `resolution_source` columns. **Deferred:** populating `UserWine3–8` from scraped designation/vineyard/country/region/subregion/appellation — the exact CellarTracker import-column semantics are unverified against synthetic fixtures, and a wrong column mapping would produce bad CSVs. Revisit once real wine pages confirm the field order; the notes-provenance is the channel that actually matters for the human-in-the-loop step.
 
 ---
 

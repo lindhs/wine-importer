@@ -77,6 +77,19 @@ def test_build_review_report_rows_compares_input_to_best_candidate() -> None:
     assert "name" in rows[0]["diff_fields"]
 
 
+def test_report_surfaces_ct_wine_id_url_and_source() -> None:
+    match = _reviewed_match()
+    match["best_match"]["ct_wine_id"] = "18856"
+    match["best_match"]["source"]["ct_wine_id"] = "18856"
+    match["best_match"]["source"]["source"] = "cellartracker_html"
+
+    rows = build_review_report_rows([match])
+
+    assert rows[0]["ct_wine_id"] == "18856"
+    assert rows[0]["ct_url"] == "https://www.cellartracker.com/wine.asp?iWine=18856"
+    assert rows[0]["resolution_source"] == "cellartracker_html"
+
+
 def test_export_review_report_writes_csv(tmp_path: Path) -> None:
     output_path = tmp_path / "report.csv"
 

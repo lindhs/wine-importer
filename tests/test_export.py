@@ -47,6 +47,32 @@ def test_export_reviewed_matches_uses_canonical_values_and_mapped_fields(tmp_pat
     assert "match_status=accepted" in rows[0]["Notes"]
 
 
+def test_export_writes_ct_wine_id_and_url_provenance(tmp_path: Path) -> None:
+    output_path = tmp_path / "cellartracker.csv"
+    reviewed_matches = [
+        {
+            "row_number": 1,
+            "user_row": {"producer": "Ridge", "name": "Lytton Springs", "vintage": "1993"},
+            "best_match": {
+                "canonical_id": "ct:18856",
+                "ct_wine_id": "18856",
+                "producer": "Ridge",
+                "name": "Lytton Springs",
+                "vintage": "1993",
+            },
+            "status": "accepted",
+            "reason": "High confidence automatic match",
+        }
+    ]
+
+    export_reviewed_matches(reviewed_matches, output_path)
+
+    with output_path.open("r", encoding="utf-8", newline="") as source:
+        notes = list(csv.DictReader(source))[0]["Notes"]
+    assert "ct_wine_id=18856" in notes
+    assert "ct_url=https://www.cellartracker.com/wine.asp?iWine=18856" in notes
+
+
 def test_export_reviewed_matches_skips_non_accepted_by_default(tmp_path: Path) -> None:
     output_path = tmp_path / "cellartracker.csv"
     reviewed_matches = [

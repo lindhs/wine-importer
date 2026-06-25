@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from .cellartracker_lookup import WINE_URL_TEMPLATE
+
 EXPORT_COLUMNS = [
     "Vintage",
     "UserWine1",
@@ -54,6 +56,13 @@ def _build_export_notes(
     canonical_id = _first_non_empty(best_match.get("canonical_id")) if include_canonical_id else ""
     if canonical_id:
         parts.append(f"canonical_id={canonical_id}")
+
+    # CellarTracker's import format has no dedicated ID column, so the iWine
+    # identity and a clickable wine URL ride in the notes provenance block.
+    ct_wine_id = _first_non_empty(best_match.get("ct_wine_id")) if include_canonical_id else ""
+    if ct_wine_id:
+        parts.append(f"ct_wine_id={ct_wine_id}")
+        parts.append(f"ct_url={WINE_URL_TEMPLATE.format(iwine=ct_wine_id)}")
 
     return " | ".join(parts)
 

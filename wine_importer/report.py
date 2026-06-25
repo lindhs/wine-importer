@@ -8,6 +8,7 @@ import pandas as pd
 from rich.console import Console
 from rich.table import Table
 
+from .cellartracker_lookup import WINE_URL_TEMPLATE
 from .normalize import normalize_size, normalize_text, normalize_vintage
 
 REPORT_COLUMNS = [
@@ -30,6 +31,9 @@ REPORT_COLUMNS = [
     "best_candidate_item",
     "diff_fields",
     "canonical_id",
+    "ct_wine_id",
+    "ct_url",
+    "resolution_source",
     "input_producer",
     "candidate_producer",
     "input_name",
@@ -173,6 +177,9 @@ def build_review_report_rows(reviewed_matches: list[dict[str, Any]]) -> list[dic
         user_row = record.get("user_row") or {}
         best_match = record.get("best_match") or {}
         source = _candidate_source(best_match)
+        ct_wine_id = best_match.get("ct_wine_id") or source.get("ct_wine_id")
+        ct_url = WINE_URL_TEMPLATE.format(iwine=ct_wine_id) if ct_wine_id else ""
+        resolution_source = _text(source.get("source")) if best_match else ""
 
         input_item = _format_item(
             _input_value(user_row, "vintage"),
@@ -210,6 +217,9 @@ def build_review_report_rows(reviewed_matches: list[dict[str, Any]]) -> list[dic
                 "best_candidate_item": candidate_item,
                 "diff_fields": _diff_fields(user_row, best_match) if best_match else "",
                 "canonical_id": _text(best_match.get("canonical_id") or source.get("id")),
+                "ct_wine_id": _text(ct_wine_id),
+                "ct_url": ct_url,
+                "resolution_source": resolution_source,
                 "input_producer": _text(_input_value(user_row, "producer")),
                 "candidate_producer": _text(_candidate_value(best_match, "producer")),
                 "input_name": _text(_input_value(user_row, "name")),
